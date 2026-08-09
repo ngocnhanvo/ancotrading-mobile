@@ -1,0 +1,492 @@
+import React, { PureComponent } from 'react'
+import {
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  View,
+  PanResponder 
+} from 'react-native'
+import PropTypes from 'prop-types'
+import Mirror, { scrollviewBootstrap } from 'react-native-mirror'
+
+const VIEWPORT_WIDTH = Dimensions.get('window').width
+const _renderPage = (item, index, props) => {
+    let row = (
+      <View
+        key={index}
+        style={[styles.rowContainer, {
+          width: props.pageWidth,
+        }]}
+      >
+        {props.renderPage({
+          data: item,
+          _pageNumber: item._pageNumber,
+          _pageIndex: item._pageIndex,
+        })}
+      </View>
+    )
+
+    if (props.renderAsCarousel && props.xperimentalMirroring === true) {
+      if (index <= props.thresholdPages) {
+        row = (
+          <Mirror
+            key={index}
+            connectionId={'mirror-' + index}
+            containerStyle={styles.mirror}
+            experimentalComponentDetection={true}
+            mirroredProps={[
+              scrollviewBootstrap,
+            ]}
+          >
+            {row}
+          </Mirror>
+        )
+      }
+
+      if (index >= props.dataSource.length - props.thresholdPages - 1) {
+        const idIndex = index - (props.dataSource.length - props.thresholdPages - 1)
+        row = (
+          <Mirror
+            key={index}
+            connectionId={'mirror-' + idIndex}
+            containerStyle={styles.mirror}
+            experimentalComponentDetection={true}
+            mirroredProps={[
+              scrollviewBootstrap,
+            ]}
+          >
+            {row}
+          </Mirror>
+        )
+      }
+    }
+
+    return row
+}
+export default class ViewPagerTabs extends PureComponent {
+
+  static defaultProps = {
+    dev: false,
+    log: false,
+    thresholdPages: 1,
+    renderAsCarousel: true,
+    pageWidth: VIEWPORT_WIDTH,
+    pagingEnabled: false,
+    contentContainerStyle: {},
+    containerStyle: {},
+    renderPage: () => {},
+    onPageChange: () => {},
+    onScroll: () => {},
+    scrollEnabled: false,
+    data: [],
+    experimentalMirroring: false,
+    showNativeScrollIndicator: false,
+    lazyrender: false,
+    initialPage: {},
+    lazyrenderThreshold: 1,
+    firePageChangeIfPassedScreenCenter: false,
+  }
+
+  static propTypes = {
+    lazyrenderThreshold: PropTypes.number,
+    contentContainerStyle: PropTypes.any,
+    containerStyle: PropTypes.any,
+    data: PropTypes.arrayOf(
+      PropTypes.object
+    ),
+    dev: PropTypes.bool,
+    log: PropTypes.bool,
+    initialPage: PropTypes.object,
+    renderAsCarousel: PropTypes.bool,
+    thresholdPages: PropTypes.number,
+    pageWidth: PropTypes.number,
+    scrollEnabled: PropTypes.bool,
+    pagingEnabled: PropTypes.bool,
+    experimentalMirroring: PropTypes.bool,
+    showNativeScrollIndicator: PropTypes.bool,
+    lazyrender: PropTypes.bool,
+    firePageChangeIfPassedScreenCenter: PropTypes.bool,
+
+    renderPage: PropTypes.func,
+    onPageChange: PropTypes.func,
+    onScroll: PropTypes.func,
+  }
+
+  constructor(props) {
+    super(props)
+
+    this._pageWithDelta = (VIEWPORT_WIDTH - this.props.pageWidth) / 2
+
+    this._onMomentumScrollEndTimeout = null
+
+    this.pageReferences = {}
+    this.data = this.props.data || []
+    this.pageCount = this.data.length
+    this.thresholdPages =
+      this.props.renderAsCarousel &&
+      this.pageCount > 1
+        ? this.props.thresholdPages : 0
+    this.pageIndex = this.thresholdPages
+    this.pageIndexBeforeDrag = this.thresholdPages
+
+    this.dataSource= [...this._prepareData(this.props.data || [])];
+
+    this.contentContainerStyle = {
+      width: this.props.pageWidth * this.dataSource.length,
+    }
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+		if (this.props.renderAsCarousel && Object.keys(this.props.initialPage).length === 0) {
+			this._scrollTo({
+				x: this.props.pageWidth * this.thresholdPages - this._pageWithDelta,
+				animated: false,
+			})
+		} else {
+			this.scrollToPageWithKeyValuePair(this.props.initialPage)
+		}
+    }, 0)
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const newDataSource = [...this._prepareData(nextProps.data || [])]
+    if (newDataSource.length !== this.dataSource.length || nextProps.pageWidth !== this.props.pageWidth){
+      this.contentContainerStyle = {
+        width: nextProps.pageWidth * newDataSource.length,
+      }
+    }
+	
+	/*console.warn(newDataSource.length);
+    this.setState({
+      dataSource: newDataSource,
+    })*/
+  }
+
+  /*
+   * public methods
+   */
+  scroll = dx => {
+    const realPageWidth = VIEWPORT_WIDTH / this.props.pageWidth
+    const realPageWidthTrunc = Math.trunc(realPageWidth)
+
+    const centerPageDelta = realPageWidthTrunc % 2 === 0
+      ? -(this.props.pageWidth / 2 + this.props.pageWidth * (realPageWidthTrunc / 2 - 1))
+      : -this.props.pageWidth * (Math.floor(realPageWidthTrunc / 2))
+
+    const thresholdOffset = this.props.renderAsCarousel ? (this.props.pageWidth * this.thresholdPages + centerPageDelta) : 0
+    let centeredScrollX = dx / (realPageWidth) - this.props.pageWidth + thresholdOffset
+    const xBiggerThanZero = centeredScrollX > 0
+    const xBiggerThanScrollViewWitdh = (centeredScrollX + VIEWPORT_WIDTH)
+      > (this.pageCount + this.thresholdPages) * this.props.pageWidth
+
+    if (!xBiggerThanZero && !this.props.renderAsCarousel)
+      centeredScrollX = 0
+
+    if (xBiggerThanScrollViewWitdh && !this.props.renderAsCarousel)
+      centeredScrollX = ((this.pageCount + this.thresholdPages) * this.props.pageWidth) - VIEWPORT_WIDTH
+	
+    this._scrollTo({
+      animated: false,
+      x: centeredScrollX,
+    })
+  }
+
+  scrollToPage = (pageNumber, animated = true) => {
+	  
+    this._scrollTo({
+      animated: animated,
+      x: ((pageNumber - 1) + this.thresholdPages) * VIEWPORT_WIDTH,
+    })
+  }
+
+  scrollToPageWithKeyValuePair = keyValuePair => {
+    const pageIndex = this._getPageIndexByKeyValuePair(keyValuePair)
+    this.scrollToIndex(pageIndex, false)
+  }
+
+  scrollToIndex = (pageIndex, animated = true) => {
+    let index = pageIndex < 0 ? 0 : pageIndex
+    const lastIndex = this.dataSource.length - 1
+    index = index > lastIndex ? lastIndex : index
+    this._scrollTo({
+      animated,
+      x: index * VIEWPORT_WIDTH
+    })
+  }
+
+  /*
+   * private methods
+   */
+  _setPageNumber = (data) => {
+    return data.map((_data, index) => {
+      return Object.assign({}, _data, {
+        _pageNumber: index + 1,
+      })
+    })
+  }
+
+  _setPageIndex = data => {
+    return data.map((_data, index) => {
+      return Object.assign({}, _data, {
+        _pageIndex: index,
+      })
+    })
+  }
+
+  _addThresholdPages = data => {
+    let preparedData = []
+
+    const multiplicator = data.length > 0 ? Math.ceil(this.thresholdPages / data.length) : 0
+
+    let thresholdDataFront = []
+    let thresholdDataEnd = []
+
+    for (let i = 0; i < multiplicator; i++) {
+      thresholdDataFront = [...thresholdDataFront, ...[...data].reverse()]
+      thresholdDataEnd = [...thresholdDataEnd, ...data]
+    }
+
+    let thresholdFront = thresholdDataFront.slice(0, this.thresholdPages).reverse()
+    let thresholdEnd = thresholdDataEnd.slice(0, this.thresholdPages)
+
+    thresholdFront = thresholdFront.map(thresholdPage => ({
+      ...thresholdPage,
+      _isThresholdPage: true,
+    }))
+    thresholdEnd = thresholdEnd.map(thresholdPage => ({
+      ...thresholdPage,
+      _isThresholdPage: true,
+    }))
+
+    preparedData = [...thresholdFront, ...data, ...thresholdEnd]
+
+    return preparedData
+  }
+
+  _prepareData = (data) => {
+    const initializedData = this._setPageNumber(data)
+
+    let preparedData = [...initializedData]
+    if (this.props.renderAsCarousel) {
+      preparedData = this._addThresholdPages(initializedData)
+    }
+    preparedData = this._setPageIndex(preparedData)
+
+    return [...preparedData]
+  }
+
+  _getPageNumberByIndex = index => {
+    const roundedIndex = Math.round(index)
+    if (this.props.renderAsCarousel) {
+      if (roundedIndex === 0) return this.dataSource.length - 1
+      if (roundedIndex === this.dataSource.length - 1) return 1
+    }
+    const pageNumber = this.dataSource[roundedIndex] ? this.dataSource[roundedIndex]._pageNumber : 1
+    return pageNumber
+  }
+
+  _getPageIndexByKeyValuePair = keyValuePair => {
+    const key = Object.keys(keyValuePair)[0]
+    const value = keyValuePair[key]
+    const pageWithKeyValuePair = this.dataSource
+      .filter(page => page._pageIndex > this.props.thresholdPages - 1)
+      .filter(page => page._pageIndex < this.props.data.length + this.props.thresholdPages)
+      .find(page => {
+        return page[key] && page[key] === value
+      })
+    let pageIndex = 0
+    if (pageWithKeyValuePair)
+      pageIndex = pageWithKeyValuePair._pageIndex
+    return pageIndex
+  }
+
+  _scrollTo = (options) => {
+    if (this.scrollView) {
+      this.scrollView.scrollTo(options)
+    }
+  }
+
+  _getCurrentScrollIndex = offsetX => {
+    return Math.ceil(((offsetX + this._pageWithDelta) / this.props.pageWidth) * 100) / 100
+  }
+
+  _onScroll = (event) => {
+    //if (this._onMomentumScrollEndTimeout)
+    //  clearTimeout(this._onMomentumScrollEndTimeout)
+
+    let offsetX = event.nativeEvent.contentOffset.x;
+    this.scrollingRight = (offsetX > this.lastx)
+    this.lastx = offsetX
+    //this.props.onScroll(offsetX)
+
+    //const scrollIndex = this._getCurrentScrollIndex(offsetX)
+	
+	
+    // // fire onPageChange if the dragged page passed half of the screen
+    // if (
+      // (this.pageIndexBeforeDrag + 0.5 < scrollIndex ||
+      // this.pageIndexBeforeDrag - 0.5 > scrollIndex) &&
+      // this.props.firePageChangeIfPassedScreenCenter
+    // ) {
+      // this._onPageChange()
+    // }
+	
+	// if (this.props.renderAsCarousel && scrollIndex % 1 < 0.03) {
+      // if (Math.trunc(scrollIndex) === 0) {
+        // offsetX = VIEWPORT_WIDTH * (this.dataSource.length - 2)
+        // this._scrollTo({
+          // animated: false,
+          // x: offsetX,
+        // })
+        // this.props.onScroll(offsetX)
+
+      // } else if (Math.trunc(scrollIndex) === this.dataSource.length - 1) {
+        // offsetX = VIEWPORT_WIDTH
+        // this._scrollTo({
+          // animated: false,
+          // x: offsetX,
+        // })
+        // this.props.onScroll(offsetX)
+      // }
+    // }
+
+    //this._onMomentumScrollEndTimeout = setTimeout(() => {
+    //  this._onMomentumScrollEnd()
+    //}, 50)
+
+    //this.pageIndex = Math.round(scrollIndex)
+  }
+
+  _onPageChange = () => {
+    if (this.pageIndexBeforeDrag !== this.pageIndex || Object.keys(this.props.initialPage).length > 0) {
+      const pageNumber = this._getPageNumberByIndex(this.pageIndex)
+      this.pageIndexBeforeDrag = this.pageIndex
+      this.props.onPageChange(pageNumber)
+    }
+  }
+
+  _onScrollBeginDrag = () => {
+	//this.pageIndexBeforeDrag = this.pageIndex;
+  }
+
+  _onMomentumScrollEnd = () => {
+    const pageNumber = this._getPageNumberByIndex(this.pageIndex)
+    var chk = false;
+	for (const key in this.pageReferences) {
+      if (this.pageReferences[key]) {
+        this.pageReferences[key].onPageChange(pageNumber)
+		chk = true;
+	  }
+    }
+    if(chk == false) {
+		try {
+			this._onPageChange();
+		}
+		catch(r) { }
+	}
+  }
+
+  _getScrollEnabled = () => {
+    return (
+      this.props.scrollEnabled &&
+      this.pageCount > 1 &&
+      (this.pageCount + this.thresholdPages) * this.props.pageWidth > VIEWPORT_WIDTH
+    )
+  }
+
+  render() {
+	var this_sav = this;
+    this.pageReferences = {}
+	this.panResponder = PanResponder.create({
+		onStartShouldSetPanResponder: (evt, gestureState) => true,
+		onMoveShouldSetPanResponder: (evt, gestureState) => true,
+		onPanResponderGrant: (evt, gestureState) => {
+
+		},
+		onPanResponderMove: (evt, gestureState) => {
+          // The most recent move distance is gestureState.move{X,Y}
+			
+          // The accumulated gesture distance since becoming responder is
+          // gestureState.d{x,y}
+			//var interval = gestureState.dx + this.lastx;
+			//var snapTo = (this.scrollingRight) ? interval : interval;
+			//this_sav.scrollView.scrollTo({x:interval, animated: false});
+        },
+		onPanResponderRelease: (e, gestureState) => {
+
+			//this_sav.scrollToIndex(this_sav.pageIndex);
+
+			/*var interval = VIEWPORT_WIDTH;
+			var snapTo = (this.scrollingRight)? Math.ceil(this.lastx / interval) : Math.floor(this.lastx / interval);
+			var scrollTo = snapTo * interval;
+			
+			this_sav.scrollView.scrollTo({x:scrollTo, y:0, animated: true});*/
+		}
+	});
+	
+    return (
+      <View
+        style={[styles.container, this.props.containerStyle]}
+      >
+			<ScrollView
+			  ref={(scrollView) => {
+				this.scrollView = scrollView
+			  }}
+			  decelerationRate={0}
+			  onScrollBeginDrag={this._onScrollBeginDrag}
+			  onScrollEndDrag={()=>{ 
+				var interval = VIEWPORT_WIDTH/5;
+				var snapTo = (this.scrollingRight)? Math.ceil(this.lastx / interval) : Math.floor(this.lastx / interval);
+				var scrollTo = snapTo * interval;
+				
+				this_sav.scrollView.scrollTo({x:scrollTo, y:0, animated: true});
+			  }}
+			  horizontal={true}
+			  pagingEnabled={false}
+			  scrollEnabled={false}
+			  showsHorizontalScrollIndicator={false}
+			  showsVerticalScrollIndicator={false}
+			  onScroll={this._onScroll}
+			  scrollEventThrottle={16}
+			  contentContainerStyle={[styles.scrollViewContainer, this.props.contentContainerStyle, this.contentContainerStyle]}>
+			  {
+				this.dataSource.map((item, index) => (			  
+				  <View
+					key={"ViewPageTabs"+index}
+					style={{
+					  width: this.props.pageWidth,
+					  flex: 1
+					}}
+				  >
+					{_renderPage(item, index, this.props)}
+				  </View>
+				))
+			  }
+			</ScrollView>
+      </View>
+    )
+  }
+}
+
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+  },
+  scrollViewContainer: {
+    flexDirection: 'row',
+    /*
+     * bug in react-native
+     * overflow style has to be set
+     * https://github.com/facebook/react-native/issues/12926
+     */
+    overflow: 'hidden',
+  },
+  rowContainer: {
+    flexGrow: 1,
+  },
+  mirror: {
+    flexGrow: 1,
+  },
+})

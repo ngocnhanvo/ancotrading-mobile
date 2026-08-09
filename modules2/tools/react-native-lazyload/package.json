@@ -1,0 +1,52 @@
+{
+  "_from": "react-native-lazyload",
+  "_id": "react-native-lazyload@1.1.0",
+  "_inBundle": false,
+  "_integrity": "sha1-Rj127L3sXL55BgvOZbZz5LFks2Q=",
+  "_location": "/react-native-lazyload",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "react-native-lazyload",
+    "name": "react-native-lazyload",
+    "escapedName": "react-native-lazyload",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/react-native-lazyload/-/react-native-lazyload-1.1.0.tgz",
+  "_shasum": "463d76ecbdec5cbe79060bce65b673e4b164b364",
+  "_spec": "react-native-lazyload",
+  "_where": "D:\\Winta\\Website\\sieuwebaz\\GitWinta\\ReactNativeWinta\\Winta_App",
+  "bugs": {
+    "url": "https://github.com/magicismight/react-native-lazyload/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "react-native-scrollable-mixin": "^1.0.1"
+  },
+  "deprecated": false,
+  "description": "lazyload for react native",
+  "homepage": "https://github.com/magicismight/react-native-lazyload#readme",
+  "keywords": [
+    "react-component",
+    "react-native",
+    "ios",
+    "android",
+    "lazyload",
+    "load"
+  ],
+  "license": "MIT",
+  "main": "./index.js",
+  "name": "react-native-lazyload",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magicismight/react-native-lazyload.git"
+  },
+  "version": "1.1.0"
+}

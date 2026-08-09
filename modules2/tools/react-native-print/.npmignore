@@ -1,0 +1,11 @@
+example/
+
+# JetBrains
+.idea
+.project
+.settings
+.idea/*
+*.iml
+
+# Android build files
+android/build/
