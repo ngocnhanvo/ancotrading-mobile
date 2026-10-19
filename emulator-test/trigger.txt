@@ -1,3 +1,5 @@
 Test the exact published anco.115.74.201.244.apk from GitHub Release anco-apk-emulator.
 SHA-256: 17bfa983fd632644292cedb132ffed5e552d15f61de5d16efe2e82f21afad394
 No source build.
+
+Second APK-only run: navigate to SCAN NOW and capture camera screen/errors; no source build.
