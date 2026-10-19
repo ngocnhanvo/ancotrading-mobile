@@ -49,3 +49,36 @@ if grep -q "FATAL EXCEPTION" "$OUT/errors.txt"; then
   echo "FAIL: fatal Android exception found in logs" | tee -a "$OUT/result.txt"
   exit 1
 fi
+
+
+echo "Opening SCAN NOW button on the original APK for camera/QR smoke test."
+adb logcat -c
+read -r TAP_X TAP_Y < <(python3 - <<'PY'
+from pathlib import Path
+import struct
+data = Path('emulator-results/anco-screen.png').read_bytes()[:24]
+width, height = struct.unpack('>II', data[16:24])
+print(round(width * 0.50), round(height * 0.965))
+PY
+)
+echo "Tap SCAN NOW at x=$TAP_X, y=$TAP_Y" | tee "$OUT/scan-tap.txt"
+adb shell input tap "$TAP_X" "$TAP_Y"
+sleep 12
+adb shell screencap -p /sdcard/anco-scan-screen.png || true
+adb pull /sdcard/anco-scan-screen.png "$OUT/anco-scan-screen.png" || true
+adb logcat -d -v time > "$OUT/scan-logcat-full.txt" || true
+adb logcat -d -v time -s AndroidRuntime:E ReactNativeJS:E ReactNative:E libc:F > "$OUT/scan-errors.txt" || true
+adb shell pidof "$PKG" > "$OUT/scan-app-pid.txt" || true
+adb shell dumpsys activity activities > "$OUT/scan-activities.txt" || true
+
+if [[ -s "$OUT/scan-app-pid.txt" ]]; then
+  echo "PASS: app process survived SCAN NOW navigation." | tee -a "$OUT/result.txt"
+else
+  echo "FAIL: app process died after tapping SCAN NOW." | tee -a "$OUT/result.txt"
+  exit 1
+fi
+if grep -q "FATAL EXCEPTION" "$OUT/scan-errors.txt"; then
+  echo "FAIL: Android fatal exception found after SCAN NOW." | tee -a "$OUT/result.txt"
+  exit 1
+fi
+echo "NOTE: screenshot and logs require manual review for actual camera readiness." | tee -a "$OUT/result.txt"
