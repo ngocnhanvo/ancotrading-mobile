@@ -33,6 +33,22 @@ jobs:
       - name: Install JS dependencies
         run: npm ci --legacy-peer-deps --no-audit --no-fund
 
+      - name: Adapt legacy scanner Gradle syntax only inside CI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('node_modules/react-native-smart-barcode/android/build.gradle')
+          s = p.read_text()
+          s = s.replace('compileSdkVersion 23', 'compileSdkVersion 34')
+          s = s.replace('buildToolsVersion "23.0.3"', '')
+          s = s.replace('targetSdkVersion 23', 'targetSdkVersion 34')
+          s = s.replace('android {', 'android {\\n    namespace "com.reactnativecomponent.barcode"', 1)
+          s = re.sub(r'(?m)^(\\s*)compile(\\s+)', r'\\1implementation\\2', s)
+          p.write_text(s)
+          print(p.read_text())
+          PY
+
       - name: Build debug APK from repository source
         run: |
           chmod +x android/gradlew
