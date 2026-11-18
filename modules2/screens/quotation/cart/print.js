@@ -243,7 +243,6 @@ export default class PrintMain extends PureComponent {
 						<td>${item.packing}</td>
 						<td>${item.qtyCont}</td>
 						<td class="price">${totalQty == null ? 'SL Outer required' : Model.toNumberStr(totalQty)}
-							<div style="font-size:9px">${Number(item.qty) || 0} Items + ${Number(item.qtyPallet) || 0} × ${Number(item.slOuter) || 0} Outer</div>
 						</td>
 						<td class="price">${lineCbm == null ? 'SL Outer required' : Model.toNumberStr(lineCbm)}</td>
 						<td class="price" style="display:${display}">${Model.toNumberStr(item.price)}</td>
