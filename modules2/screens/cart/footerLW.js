@@ -53,12 +53,6 @@ export default class FooterLW extends PureComponent {
 						))}
 					</View>
 				))}
-				<View style={{alignItems: 'center', paddingVertical: 9, borderTopWidth: 1, borderTopColor: '#d7ddd3'}}>
-					<Text style={{fontWeight: 'bold', color: '#242b24'}}>Total Qty (Items + Pallet × SL Outer)</Text>
-					<Text style={{fontSize: 16, color: '#1646b5', marginTop: 3}}>
-						{this.state.invalidOuter > 0 ? 'SL Outer required' : Model.toNumberStr(Number(this.state.sum_totalQty) || 0)}
-					</Text>
-				</View>
 			</View>
 		);
 	}
