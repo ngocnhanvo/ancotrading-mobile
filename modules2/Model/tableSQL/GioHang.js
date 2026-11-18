@@ -13,6 +13,7 @@ class GioHang {
 		let sizes = item.sizes ? JSON.stringify(item.sizes).replace(/'/g,"''") : '';
 		let colors = item.colors ? JSON.stringify(item.colors).replace(/'/g,"''") : '';
 		let qty = item.qty == null ? 1 : item.qty;
+		let qtyPallet = Math.max(0, Math.floor(Number(item.qtyPallet) || 0));
 		let note = item.note ? item.note.replace(/'/g,"''") : '';
 		let size = item.size ? item.size.replace(/'/g,"''") : '';
 		return {
@@ -28,6 +29,7 @@ class GioHang {
 			sizes,
 			colors,
 			qty,
+			qtyPallet,
 			note,
 			size
 		};
@@ -132,10 +134,10 @@ class GioHang {
 		try {
 			const values = data.map((item) => {
 				let ava = GioHang.beforeInsertUpdate(item);
-				return `('${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', 1, ${ava.qty}, '${ava.note}')`;
+				return `('${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', 1, ${ava.qty}, ${ava.qtyPallet}, '${ava.note}')`;
 			});	
 			const sqlStr = `
-				INSERT INTO GioHang (itemNo, description, size, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors, addtocart, qty, note) VALUES ${values.join(',')};
+				INSERT INTO GioHang (itemNo, description, size, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors, addtocart, qty, qtyPallet, note) VALUES ${values.join(',')};
 			`;
 			SQL.open((db) => {
 				db.transaction(tx => {
@@ -179,6 +181,7 @@ class GioHang {
 								colors = '${ava.colors}', 
 								addtocart = 1, 
 								qty = ${ava.qty},
+								qtyPallet = ${ava.qtyPallet},
 								note = '${ava.note}'
 							WHERE 1 = 1
 								AND itemNo = '${ava.itemNo}'

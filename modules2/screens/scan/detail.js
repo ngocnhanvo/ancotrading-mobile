@@ -36,6 +36,7 @@ class Detail extends PureComponent {
 		};
 
 		this.state.qty = this.state.res.qty ? this.state.res.qty : 1;
+		this.state.qtyPallet = Math.max(0, Math.floor(Number(this.state.res.qtyPallet) || 0));
 		this.state.note = this.state.res.note ? this.state.res.note : '';
 	}
 	componentDidMount() {
@@ -76,13 +77,13 @@ class Detail extends PureComponent {
 								</TouchableOpacity>
 							</View>
 							<View style={{flexDirection: 'row', width:'100%', paddingTop: 10}}>
-								<View style={{width: 120, paddingLeft: 20}}>
+								<View style={{width: 150, paddingLeft: 20}}>
 									<Text style={styles.detail_row}>Item No.:</Text>
 									<Text style={styles.detail_row}>Packing:</Text>
 									<Text style={styles.detail_row}>Pallet Size:</Text>
 									<Text style={styles.detail_row}>Q'ty cont:</Text>
 									<Text style={styles.detail_row}>Price:</Text>
-									<Text style={[styles.detail_row,{paddingTop: 5}]}>Quantity:</Text>
+									<Text style={[styles.detail_row,{paddingTop: 5}]}>Quantity Items:</Text>
 								</View>
 								<View style={{ }}>
 									<TouchableOpacity onPress={() => Clipboard.setString(res.itemNo)}>
@@ -106,6 +107,21 @@ class Detail extends PureComponent {
 									/>
 								</View>
 							</View>
+						<View style={{paddingLeft: 20, paddingTop: 12}}>
+							<Text style={styles.detail_row}>Quantity Pallet/thùng/kiện:</Text>
+							<NumericInput
+								onChange={value => this_sav.setState({qtyPallet: value})}
+								onLimitReached={(isMax,msg) => alert(msg)}
+								value={this_sav.state.qtyPallet}
+								minValue={0}
+								maxValue={Model.maxVal}
+								totalHeight={Model.NumericInputH}
+								totalWidth={Model.NumericInputW}
+								iconStyle={{ color: 'white' }}
+								rightButtonBackgroundColor='#000'
+								leftButtonBackgroundColor='#000'
+							/>
+						</View>
 							<View style={{marginTop: 10, paddingLeft: 20, maxHeight: 'auto'}}>
 								<Text style={[styles.detail_row, {color: 'blue'}]}>Available sizes</Text>
 								<Sizes

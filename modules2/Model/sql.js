@@ -51,10 +51,12 @@ class SQL {
 		checkAndAddColumn('GioHang', 'description', 'TEXT');
 		checkAndAddColumn('GioHang', 'colorName', 'TEXT');
 		checkAndAddColumn('GioHang', 'size', 'TEXT');
+		checkAndAddColumn('GioHang', 'qtyPallet', 'INTEGER DEFAULT 0');
 		checkAndAddColumn('BaoGiaSP', 'note', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'description', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'colorName', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'size', 'TEXT');
+		checkAndAddColumn('BaoGiaSP', 'qtyPallet', 'INTEGER DEFAULT 0');
 		checkAndAddColumn('BaoGia', 'username', 'TEXT');
 		checkAndAddColumn('BaoGia', 'qotype', 'INTEGER');
 	}
@@ -123,6 +125,7 @@ class SQL {
 					colors TEXT,
 					addtocart INTEGER,
 					qty INTEGER,
+					qtyPallet INTEGER DEFAULT 0,
 					note TEXT
 				);`;
 		sqlarr.push(sql);
@@ -160,6 +163,7 @@ class SQL {
 					sizes TEXT,
 					colors TEXT,
 					qty INTEGER,
+					qtyPallet INTEGER DEFAULT 0,
 					note TEXT
 				);`;
 		sqlarr.push(sql);

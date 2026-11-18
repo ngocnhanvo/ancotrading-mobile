@@ -76,6 +76,7 @@ class Scan extends PureComponent {
 
 							res = Model.detailScan.state.res;
 							res.qty = Model.detailScan.state.qty;
+							res.qtyPallet = Model.detailScan.state.qtyPallet;
 							res.note = Model.detailScan.state.note;
 							res.scan = true;
 							res.selCL = true;

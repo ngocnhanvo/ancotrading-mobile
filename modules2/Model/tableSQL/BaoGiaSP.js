@@ -14,6 +14,7 @@ class BaoGiaSP {
 		let sizes = item.sizes ? JSON.stringify(item.sizes).replace(/'/g,"''") : '';
 		let colors = item.colors ? JSON.stringify(item.colors).replace(/'/g,"''") : '';
 		let qty = item.qty == null ? 1 : item.qty;
+		let qtyPallet = Math.max(0, Math.floor(Number(item.qtyPallet) || 0));
 		let note = item.note ? item.note.replace(/'/g,"''") : '';
 		let size = item.size ? item.size.replace(/'/g,"''") : '';
 		return {
@@ -30,6 +31,7 @@ class BaoGiaSP {
 			sizes,
 			colors,
 			qty,
+			qtyPallet,
 			note,
 			size
 		};
@@ -161,10 +163,10 @@ class BaoGiaSP {
 			
 			const values = data.map((item) => {
 				let ava = BaoGiaSP.beforeInsertUpdate(item);
-				return `(${ava.BaoGiaID}, '${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', ${ava.qty}, '${ava.note}')`;
+				return `(${ava.BaoGiaID}, '${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', ${ava.qty}, ${ava.qtyPallet}, '${ava.note}')`;
 			});	
 			const sqlStr = `
-				INSERT INTO BaoGiaSP (BaoGiaID, itemNo, description, size, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors, qty, note) VALUES ${values.join(',')};
+				INSERT INTO BaoGiaSP (BaoGiaID, itemNo, description, size, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors, qty, qtyPallet, note) VALUES ${values.join(',')};
 			`;
 			SQL.open((db) => {
 				db.transaction(tx => {
@@ -206,6 +208,7 @@ class BaoGiaSP {
 								sizes = '${ava.sizes}', 
 								colors = '${ava.colors}',
 								qty = ${ava.qty},
+								qtyPallet = ${ava.qtyPallet},
 								note = '${ava.note}'
 							WHERE 1 = 1
 								AND BaoGiaID = ${ava.BaoGiaID}

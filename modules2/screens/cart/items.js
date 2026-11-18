@@ -34,6 +34,7 @@ export default class Items extends PureComponent {
 			}
 		}
 		let qty = Model.detailScan.state.qty;
+		let qtyPallet = Model.detailScan.state.qtyPallet;
 		let note = Model.detailScan.state.note;
 		
 		
@@ -51,7 +52,7 @@ export default class Items extends PureComponent {
 
 		let selCL = rowData.itemNo != itemSel;
 
-		if(selCL | rowData.qty != qty | rowData.note != note) {
+		if(selCL || rowData.qty != qty || Number(rowData.qtyPallet || 0) !== qtyPallet || rowData.note != note) {
 			ThongTinSP.getThongTinSPs({searchStr: itemSel, dateStr: rowData.dateStr, page: 1, take: 1}, (datas) => {
 				if(datas.length <= 0) {
 					alert(`"${itemSel}" doesn't exist in the "Search Product" menu`);
@@ -60,6 +61,7 @@ export default class Items extends PureComponent {
 					datas[0].scan = false;
 					datas[0].selCL = selCL;
 					datas[0].qty = qty;
+					datas[0].qtyPallet = qtyPallet;
 					datas[0].note = note;
 					datas[0].itemNo_old = type ? "000000000" : rowData.itemNo;
 					datas[0].index = rowData.index;
