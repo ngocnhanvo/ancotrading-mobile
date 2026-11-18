@@ -1,16 +1,7 @@
 name: Android Release APK
 
+# APK builds are manual; Android developers install locally using ADB/Gradle.
 on:
-  push:
-    branches: [master]
-    paths:
-      - '.github/workflows/android-apk.yml'
-      - 'android/**'
-      - 'modules2/**'
-      - 'App.js'
-      - 'index.js'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 concurrency:
