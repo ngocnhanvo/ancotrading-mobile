@@ -86,6 +86,20 @@ class Scan extends PureComponent {
 							alert(quantityError);
 							return;
 						}
+							let data = [res];
+							Model.objectM.sidebar.addtoCart(data, (a)=> {
+								Model.objectM.spinnerMain.close();
+								if(isNaN(a))
+									alert(a)
+								else {
+									Model.headerScan.setState({count_cart: a});
+									//this_sav._startScan();
+									//this_sav.showCamera(1);
+									//Model.objectM.dialogboxMain2.disableOverlayClickClose(false);
+									//Model.objectM.dialogboxMain2.close();
+								}
+							});
+						}
 					},
 					{
 						text: 'Cancel',
