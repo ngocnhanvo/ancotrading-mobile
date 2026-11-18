@@ -72,7 +72,7 @@ jobs:
           for path in source.rglob('*.java'):
               code = path.read_text()
               code = code.replace('android.support.annotation.Nullable', 'androidx.annotation.Nullable')
-              code = re.sub(r'(?m)^[ \\t]*@Override[ \\t]*\\n(?=[ \\t]*public[^\\n]*createJSModules\\s*\\()', '', code)
+              code = re.sub(r'(?m)^[ \t]*@Override[ \t]*\n(?=[ \t]*public[^\n]*createJSModules\s*\()', '', code)
               path.write_text(code)
           PY
 
