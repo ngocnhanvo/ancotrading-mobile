@@ -13,6 +13,10 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -50,12 +54,17 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --legacy-peer-deps
 
-      # This legacy module still declares the removed Gradle 'compile' configuration.
-      - name: Patch legacy smart-barcode Gradle dependency syntax
+      # Older native libraries need a compatible compile configuration and Android SDK.
+      - name: Patch legacy Android libraries for Gradle 8
         run: |
-          file="node_modules/react-native-smart-barcode/android/build.gradle"
-          test -f "$file"
-          sed -i -E 's/^[[:space:]]*compile[[:space:]]+/    implementation /' "$file"
+          barcode="node_modules/react-native-smart-barcode/android/build.gradle"
+          test -f "$barcode"
+          sed -i -E 's/^[[:space:]]*compile[[:space:]]+/    implementation /' "$barcode"
+          for module in react-native-smart-barcode react-native-print; do
+            file="node_modules/$module/android/build.gradle"
+            test -f "$file"
+            sed -i -E 's/compileSdkVersion[[:space:]]*=?[[:space:]]*[0-9]+/compileSdkVersion 34/g' "$file"
+          done
 
       - name: Build standalone Android release APK
         working-directory: android
