@@ -65,6 +65,16 @@ jobs:
             test -f "$file"
             sed -i -E 's/compileSdkVersion[[:space:]]*=?[[:space:]]*[0-9]+/compileSdkVersion 34/g' "$file"
           done
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          source = Path('node_modules/react-native-smart-barcode/android/src/main/java')
+          for path in source.rglob('*.java'):
+              code = path.read_text()
+              code = code.replace('android.support.annotation.Nullable', 'androidx.annotation.Nullable')
+              code = re.sub(r'(?m)^[ \\t]*@Override[ \\t]*\\n(?=[ \\t]*public[^\\n]*createJSModules\\s*\\()', '', code)
+              path.write_text(code)
+          PY
 
       - name: Build standalone Android release APK
         working-directory: android
