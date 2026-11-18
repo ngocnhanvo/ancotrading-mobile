@@ -81,6 +81,7 @@ export default class FooterSPD extends Component {
 										ma_sanpham: sps[i].itemNo,
 										price: sps[i].price,
 										soluong: getTotalQuantity(sps[i]),
+										qtyPallet: Number(sps[i].qtyPallet) || 0,
 										ghichu: sps[i].note
 									});
 								}
