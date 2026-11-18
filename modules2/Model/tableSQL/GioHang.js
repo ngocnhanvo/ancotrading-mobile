@@ -14,6 +14,7 @@ class GioHang {
 		let colors = item.colors ? JSON.stringify(item.colors).replace(/'/g,"''") : '';
 		let qty = item.qty == null ? 1 : item.qty;
 		let qtyPallet = Math.max(0, Math.floor(Number(item.qtyPallet) || 0));
+		let slOuter = Math.max(0, Number(item.slOuter) || 0);
 		let note = item.note ? item.note.replace(/'/g,"''") : '';
 		let size = item.size ? item.size.replace(/'/g,"''") : '';
 		return {
@@ -30,13 +31,14 @@ class GioHang {
 			colors,
 			qty,
 			qtyPallet,
+			slOuter,
 			note,
 			size
 		};
 	}
 	static sumGioHangs = (data, callback) => {
 		let where = SQL.getWhere(data);
-		const sqlStr = `SELECT sum(qty) as qty, COALESCE(sum(qtyPallet), 0) as qtyPallet, round(sum(qty*cbm), 3) as cbm, round(sum(qty*price), 2) as amount FROM GioHang ${where}`;
+		const sqlStr = `SELECT COALESCE(SUM(qty), 0) AS qty, COALESCE(SUM(qtyPallet), 0) AS qtyPallet, COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) AS invalidOuter, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0))), 0) END AS totalQty, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE ROUND(COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0)) * CAST(COALESCE(cbm, '0') AS REAL)), 0), 3) END AS cbm, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE ROUND(COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0)) * CAST(REPLACE(COALESCE(price, '0'), ',', '') AS REAL)), 0), 2) END AS amount FROM GioHang ${where}`;
 		try {
 			SQL.open((db) => {
 				db.transaction(tx => {
@@ -134,10 +136,10 @@ class GioHang {
 		try {
 			const values = data.map((item) => {
 				let ava = GioHang.beforeInsertUpdate(item);
-				return `('${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', 1, ${ava.qty}, ${ava.qtyPallet}, '${ava.note}')`;
+				return `('${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', ${ava.slOuter}, '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}', 1, ${ava.qty}, ${ava.qtyPallet}, '${ava.note}')`;
 			});	
 			const sqlStr = `
-				INSERT INTO GioHang (itemNo, description, size, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors, addtocart, qty, qtyPallet, note) VALUES ${values.join(',')};
+				INSERT INTO GioHang (itemNo, description, size, packing, palletSize, qtyCont, slOuter, price, amount, cbm, image, sizes, colors, addtocart, qty, qtyPallet, note) VALUES ${values.join(',')};
 			`;
 			SQL.open((db) => {
 				db.transaction(tx => {
@@ -182,6 +184,7 @@ class GioHang {
 								addtocart = 1, 
 								qty = ${ava.qty},
 								qtyPallet = ${ava.qtyPallet},
+								slOuter = ${ava.slOuter},
 								note = '${ava.note}'
 							WHERE 1 = 1
 								AND itemNo = '${ava.itemNo}'

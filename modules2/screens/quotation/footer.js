@@ -8,6 +8,7 @@ import {
 import stylevnn from '../../styles/public.js';
 import { FooterNTBVNN } from "../../tools/native-base-vnn";
 import { Model } from '../../Model/index.js';
+import { getTotalQuantity, validateQuantity } from '../../Model/quantity';
 import { BaoGia, BaoGiaSP } from '../../Model/tableSQL';
 let sizeScreen = Dimensions.get("window");
 const deviceHeight = sizeScreen.height;
@@ -68,12 +69,18 @@ export default class FooterSPD extends Component {
 						BaoGiaSP.getBaoGiaSPs({where}, (sps)=> {
 							let len = sps.length;
 							if(len > 0) {
+								const invalidRow = sps.find(row => validateQuantity(row, Model.maxVal));
+								if (invalidRow) {
+									Model.objectM.spinnerMain.close();
+									alert('Product ' + invalidRow.itemNo + ': ' + validateQuantity(invalidRow, Model.maxVal));
+									return;
+								}
 								let spsInQuo = [];
 								for(let i=0; i<len; i++) {
 									spsInQuo.push({
 										ma_sanpham: sps[i].itemNo,
 										price: sps[i].price,
-										soluong: sps[i].qty,
+										soluong: getTotalQuantity(sps[i]),
 										ghichu: sps[i].note
 									});
 								}

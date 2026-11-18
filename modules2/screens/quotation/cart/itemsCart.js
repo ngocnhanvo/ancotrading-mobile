@@ -10,6 +10,7 @@ import {
 import styles from '../styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../../Model';
+import { validateQuantity, getTotalQuantity, getLineAmount } from '../../../Model/quantity';
 import { ThongTinSP } from "../../../Model/tableSQL/ThongTinSP.js";
 import Detail from '../../scan/detail.js';
 let sizeScreen = Dimensions.get("window");
@@ -38,15 +39,9 @@ export default class Items extends PureComponent {
 		let note = Model.detailScan.state.note;
 		
 		
-		if(!qty)
-			qty = 1;
-		
-		if(qty < Model.minVal) {
-			alert(`The quantity must be greater than "${Model.minVal - 1}"`);
-			return;
-		}
-		if(qty > Model.maxVal) {
-			alert(`The quantity must be fewer than "${Model.maxVal + 1}"`);
+		const quantityError = validateQuantity({qty, qtyPallet, slOuter: res.slOuter}, Model.maxVal);
+		if(quantityError) {
+			alert(quantityError);
 			return;
 		}
 
@@ -64,6 +59,7 @@ export default class Items extends PureComponent {
 					datas[0].selCL = selCL;
 					datas[0].qty = qty;
 					datas[0].qtyPallet = qtyPallet;
+					datas[0].slOuter = Number(datas[0].slOuter) > 0 ? datas[0].slOuter : (itemSel === rowData.itemNo ? res.slOuter : datas[0].slOuter);
 					datas[0].note = note;
 					datas[0].itemNo_old = type ? "000000000" : rowData.itemNo;
 					datas[0].index = rowData.index;
@@ -91,6 +87,8 @@ export default class Items extends PureComponent {
 									Model.footerQuoLWCrt.sumFooter(datas[0].BaoGiaID, (tt) => {
 										Model.footerQuoLWCrt.state.sum_qty = tt.qty;
 										Model.footerQuoLWCrt.state.sum_qtyPallet = tt.qtyPallet;
+										Model.footerQuoLWCrt.state.sum_totalQty = tt.totalQty;
+										Model.footerQuoLWCrt.state.invalidOuter = tt.invalidOuter;
 										Model.footerQuoLWCrt.state.sum_cbm = tt.cbm;
 										Model.footerQuoLWCrt.state.sum_amount = tt.amount;
 										Model.footerQuoLWCrt.forceUpdate();
@@ -138,13 +136,16 @@ export default class Items extends PureComponent {
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.palletSize}</Text>
-							<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: {Model.toNumberStr(Number(rowData.qtyPallet) || 0)}</Text>
+							<View style={{alignItems: 'flex-end'}}>
+								<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: {Model.toNumberStr(Number(rowData.qtyPallet) || 0)}</Text>
+								<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>SL Outer: {Model.toNumberStr(Number(rowData.slOuter) || 0)} · Total Qty: {getTotalQuantity(rowData) == null ? 'N/A' : Model.toNumberStr(getTotalQuantity(rowData))}</Text>
+							</View>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>CBM: {rowData.cbm}</Text>
 							<View style={{alignItems: 'flex-end'}}>
-								<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {Model.toNumberStr(rowData.qty * Model.toNumber(rowData.price))}</Text>
+								<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
 								<TouchableOpacity 
 								style={{alignSelf: 'flex-end'}} 
 								onPress={() => {

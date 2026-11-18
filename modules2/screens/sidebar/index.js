@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Image, View,ImageBackground } from "react-native";
 import { Model } from '../../Model';
+import { validateQuantity } from '../../Model/quantity';
 import FontAwesome from '../../tools/winta-font-awesome';
 import { guid } from '../../Public_func';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -232,6 +233,12 @@ class SideBar extends Component {
     }
   }
   addtoCart(data, callback) {
+    const error = validateQuantity(data[0], Model.maxVal);
+    if (error) {
+      if (callback) callback(error);
+      else alert(error);
+      return;
+    }
     Model.objectM.spinnerMain.show();
     const afterModify = () => {
       Model.objectM.sidebar.updateCount((a)=> {
@@ -271,6 +278,12 @@ class SideBar extends Component {
     });
 	}
   addtoQuotationCart = (data, callback) => {
+    const error = validateQuantity(data[0], Model.maxVal);
+    if (error) {
+      if (callback) callback(error);
+      else alert(error);
+      return;
+    }
     Model.objectM.spinnerMain.show();
     const afterModify = (a) => {
       if(callback)

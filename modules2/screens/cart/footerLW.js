@@ -8,7 +8,7 @@ import { GioHang } from "../../Model/tableSQL";
 export default class FooterLW extends PureComponent {
 	constructor(props) {
 		super(props);
-		this.state = { dtsl: 0, sum_qty: 0, sum_qtyPallet: 0, sum_cbm: 0, sum_amount: 0 };
+		this.state = { dtsl: 0, sum_qty: 0, sum_qtyPallet: 0, sum_totalQty: 0, invalidOuter: 0, sum_cbm: 0, sum_amount: 0 };
 	}
 	sumFooter = (callback) => {
 		GioHang.sumGioHangs(null, (res) => {
@@ -18,9 +18,9 @@ export default class FooterLW extends PureComponent {
 	render() {
 		const summary = [
 			{label: 'Quantity Items', value: Model.toNumberStr(Number(this.state.sum_qty) || 0)},
-			{label: 'CBM', value: Model.toNumberStr(Number(this.state.sum_cbm) || 0)},
+			{label: 'CBM', value: this.state.invalidOuter > 0 ? 'SL Outer required' : Model.toNumberStr(Number(this.state.sum_cbm) || 0)},
 			{label: 'Quantity Pallet/thùng/kiện', value: Model.toNumberStr(Number(this.state.sum_qtyPallet) || 0)},
-			{label: 'Amount', value: '$' + Model.toNumberStr(Number(this.state.sum_amount) || 0)}
+			{label: 'Amount', value: this.state.invalidOuter > 0 ? 'SL Outer required' : '$' + Model.toNumberStr(Number(this.state.sum_amount) || 0)}
 		];
 		if(this.state.dtsl <= 0) {
 			return (
@@ -53,6 +53,12 @@ export default class FooterLW extends PureComponent {
 						))}
 					</View>
 				))}
+				<View style={{alignItems: 'center', paddingVertical: 9, borderTopWidth: 1, borderTopColor: '#d7ddd3'}}>
+					<Text style={{fontWeight: 'bold', color: '#242b24'}}>Total Qty (Items + Pallet × SL Outer)</Text>
+					<Text style={{fontSize: 16, color: '#1646b5', marginTop: 3}}>
+						{this.state.invalidOuter > 0 ? 'SL Outer required' : Model.toNumberStr(Number(this.state.sum_totalQty) || 0)}
+					</Text>
+				</View>
 			</View>
 		);
 	}

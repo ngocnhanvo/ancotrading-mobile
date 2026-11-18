@@ -113,6 +113,8 @@ export default class Cart extends PureComponent {
 				dtsl: 0,
 				sum_qty: 0,
 				sum_qtyPallet: 0,
+				sum_totalQty: 0,
+				invalidOuter: 0,
 				sum_cbm: 0,
 				sum_amount: 0
 			}
@@ -143,7 +145,7 @@ export default class Cart extends PureComponent {
 				if(Model.objectM.spinnerMain) {
 					if(this_sav.state.footerCrtLW) {
 						this_sav.state.footerCrtLW.sumFooter((res)=> {
-							this_sav.state.footerCrtLW.setState({ dtsl: res.qty, sum_qty: res.qty, sum_qtyPallet: res.qtyPallet, sum_cbm: res.cbm, sum_amount: res.amount }, ()=>{
+							this_sav.state.footerCrtLW.setState({ dtsl: Number(res.qty) + Number(res.qtyPallet) > 0 ? 1 : 0, sum_qty: res.qty, sum_qtyPallet: res.qtyPallet, sum_totalQty: res.totalQty, invalidOuter: res.invalidOuter, sum_cbm: res.cbm, sum_amount: res.amount }, ()=>{
 								Model.objectM.spinnerMain.close();
 							});
 						});

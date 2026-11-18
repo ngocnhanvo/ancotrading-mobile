@@ -8,6 +8,7 @@ import {
 import styles from './styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../Model';
+import { validateQuantity, getTotalQuantity, getLineAmount } from '../../Model/quantity';
 import { GioHang, ThongTinSP } from "../../Model/tableSQL";
 import Detail from '../scan/detail.js';
 let sizeScreen = Dimensions.get("window");
@@ -39,15 +40,9 @@ export default class Items extends Component {
 		let note = Model.detailScan.state.note;
 		
 		
-		if(!qty)
-			qty = 1;
-		
-		if(qty < Model.minVal) {
-			alert(`The quantity must be greater than "${Model.minVal - 1}"`);
-			return;
-		}
-		if(qty > Model.maxVal) {
-			alert(`The quantity must be fewer than "${Model.maxVal + 1}"`);
+		const quantityError = validateQuantity({qty, qtyPallet, slOuter: res.slOuter}, Model.maxVal);
+		if(quantityError) {
+			alert(quantityError);
 			return;
 		}
 
@@ -63,6 +58,7 @@ export default class Items extends Component {
 					datas[0].selCL = selCL;
 					datas[0].qty = qty;
 					datas[0].qtyPallet = qtyPallet;
+					datas[0].slOuter = Number(datas[0].slOuter) > 0 ? datas[0].slOuter : (itemSel === rowData.itemNo ? res.slOuter : datas[0].slOuter);
 					datas[0].note = note;
 					datas[0].itemNo_old = type ? "000000000" : rowData.itemNo;
 					datas[0].index = rowData.index;

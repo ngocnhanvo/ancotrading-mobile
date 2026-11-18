@@ -10,6 +10,7 @@ import {
 import styles from '../styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../../Model';
+import { getTotalQuantity, getLineAmount } from '../../../Model/quantity';
 
 let sizeScreen = Dimensions.get("window");
 const deviceHeight = sizeScreen.height;
@@ -116,7 +117,7 @@ export default class Items extends PureComponent {
 				}}
 			>
 				<View style={{ paddingVertical: 10 }}>
-					<View style={{ flexDirection: 'column', height: 110, padding: 5 }}>
+					<View style={{ flexDirection: 'column', minHeight: 140, padding: 5 }}>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}>{index}</Text>
 							<View style={{width: 200}}>
@@ -129,16 +130,17 @@ export default class Items extends PureComponent {
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.packing}, {rowData.qtyCont}</Text>
-							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Quantity: {Model.toNumberStr(rowData.qty)}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Quantity Items: {Model.toNumberStr(rowData.qty)}</Text>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.palletSize}</Text>
-							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {Model.toNumberStr(rowData.qty * Model.toNumber(rowData.price))}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Quantity Pallet/thùng/kiện: {Model.toNumberStr(Number(rowData.qtyPallet) || 0)}</Text>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>CBM: {rowData.cbm}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total Qty: {getTotalQuantity(rowData) == null ? 'N/A' : Model.toNumberStr(getTotalQuantity(rowData))} · Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
 							
 						</View>
 					</View>

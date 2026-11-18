@@ -47,16 +47,19 @@ class SQL {
 		checkAndAddColumn('ThongTinSP', 'colorName', 'TEXT');
 		checkAndAddColumn('ThongTinSP', 'description', 'TEXT');
 		checkAndAddColumn('ThongTinSP', 'size', 'TEXT');
+		checkAndAddColumn('ThongTinSP', 'slOuter', 'REAL DEFAULT 0');
 		checkAndAddColumn('GioHang', 'note', 'TEXT');
 		checkAndAddColumn('GioHang', 'description', 'TEXT');
 		checkAndAddColumn('GioHang', 'colorName', 'TEXT');
 		checkAndAddColumn('GioHang', 'size', 'TEXT');
 		checkAndAddColumn('GioHang', 'qtyPallet', 'INTEGER DEFAULT 0');
+		checkAndAddColumn('GioHang', 'slOuter', 'REAL DEFAULT 0');
 		checkAndAddColumn('BaoGiaSP', 'note', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'description', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'colorName', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'size', 'TEXT');
 		checkAndAddColumn('BaoGiaSP', 'qtyPallet', 'INTEGER DEFAULT 0');
+		checkAndAddColumn('BaoGiaSP', 'slOuter', 'REAL DEFAULT 0');
 		checkAndAddColumn('BaoGia', 'username', 'TEXT');
 		checkAndAddColumn('BaoGia', 'qotype', 'INTEGER');
 	}
@@ -87,6 +90,7 @@ class SQL {
 					packing TEXT,
 					palletSize TEXT,
 					qtyCont TEXT,
+					slOuter REAL DEFAULT 0,
 					price TEXT,
 					amount TEXT,
 					cbm TEXT,
@@ -116,6 +120,7 @@ class SQL {
 					packing TEXT,
 					palletSize TEXT,
 					qtyCont TEXT,
+					slOuter REAL DEFAULT 0,
 					price TEXT,
 					amount TEXT,
 					cbm TEXT,
@@ -155,6 +160,7 @@ class SQL {
 					packing TEXT,
 					palletSize TEXT,
 					qtyCont TEXT,
+					slOuter REAL DEFAULT 0,
 					price TEXT,
 					amount TEXT,
 					cbm TEXT,

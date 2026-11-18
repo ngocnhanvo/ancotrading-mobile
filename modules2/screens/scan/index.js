@@ -11,6 +11,7 @@ import {
 	Content,
 } from "../../tools/native-base";
 import { Model } from "../../Model";
+import { validateQuantity } from '../../Model/quantity';
 import stylevnn from '../../styles/public.js';
 import Barcode from 'react-native-smart-barcode'
 import { Dimensions } from 'react-native';
@@ -80,31 +81,10 @@ class Scan extends PureComponent {
 							res.note = Model.detailScan.state.note;
 							res.scan = true;
 							res.selCL = true;
-							if(!res.qty)
-								res.qty = 1;
-							
-							if(res.qty < Model.minVal) {
-								alert(`The quantity must be greater than "${Model.minVal - 1}"`);
-								return;
-							}
-							if(res.qty > Model.maxVal) {
-								alert(`The quantity must be fewer than "${Model.maxVal + 1}"`);
-								return;
-							}
-							
-							let data = [res];
-							Model.objectM.sidebar.addtoCart(data, (a)=> {
-								Model.objectM.spinnerMain.close();
-								if(isNaN(a))
-									alert(a)
-								else {
-									Model.headerScan.setState({count_cart: a});
-									//this_sav._startScan();
-									//this_sav.showCamera(1);
-									//Model.objectM.dialogboxMain2.disableOverlayClickClose(false);
-									//Model.objectM.dialogboxMain2.close();
-								}
-							});
+							const quantityError = validateQuantity(res, Model.maxVal);
+						if(quantityError) {
+							alert(quantityError);
+							return;
 						}
 					},
 					{

@@ -16,6 +16,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import NumericInput from '../../react-native-numeric-input';
 import { Model } from "../../Model";
+import { getTotalQuantity, getLineAmount } from '../../Model/quantity';
 import { Dimensions } from 'react-native';
 import styles from './styles.js';
 import { ScrollView } from 'react-native';
@@ -35,7 +36,7 @@ class Detail extends PureComponent {
 			load: false
 		};
 
-		this.state.qty = this.state.res.qty ? this.state.res.qty : 1;
+		this.state.qty = this.state.res.qty == null ? 1 : Number(this.state.res.qty);
 		this.state.qtyPallet = Math.max(0, Math.floor(Number(this.state.res.qtyPallet) || 0));
 		this.state.note = this.state.res.note ? this.state.res.note : '';
 	}
@@ -67,6 +68,9 @@ class Detail extends PureComponent {
 		let maxHeight = deviceHeight - deviceHeight/4;
 		const isTabletLayout = deviceWidth >= 600;
 		const quantityWidth = isTabletLayout ? 280 : Math.min(280, deviceWidth - 90);
+		const quantityRow = {qty: this_sav.state.qty, qtyPallet: this_sav.state.qtyPallet, slOuter: res.slOuter, price: res.price};
+		const totalQty = getTotalQuantity(quantityRow);
+		const lineAmount = getLineAmount(quantityRow);
 		return (
 			!this_sav.state.load ? 
 				<View style={{width:'100%', maxHeight }}><Text style={{color:'#000'}}>Loading...</Text></View> :
@@ -105,7 +109,7 @@ class Detail extends PureComponent {
 										onChange={value => this_sav.setState({qty: value})}
 										onLimitReached={(isMax,msg) => alert(msg)}
 										value={this_sav.state.qty}
-										minValue={Model.minVal}
+										minValue={0}
 										maxValue={Model.maxVal}
 										totalHeight={Model.NumericInputH}
 										totalWidth={quantityWidth}
@@ -129,6 +133,11 @@ class Detail extends PureComponent {
 										leftButtonBackgroundColor='#000'
 									/>
 								</View>
+							</View>
+							<View style={{marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#dce4dc'}}>
+								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>SL Outer: {Number(res.slOuter) > 0 ? Model.toNumberStr(Number(res.slOuter)) : 'Not available'}</Text>
+								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>Total Qty: {totalQty == null ? 'SL Outer required' : Model.toNumberStr(totalQty)}</Text>
+								<Text style={[styles.quantityLabel, {marginBottom: 0}]}>Total Amount: {lineAmount == null ? '—' : '$' + Model.toNumberStr(lineAmount)}</Text>
 							</View>
 						</View>
 						<View style={{marginTop: 10, paddingLeft: 20, maxHeight: 'auto'}}>

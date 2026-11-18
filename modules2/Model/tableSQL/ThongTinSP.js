@@ -7,6 +7,7 @@ class ThongTinSP {
 		let packing = item.packing ? item.packing.replace(/'/g,"''") : '';
 		let palletSize = item.palletSize ? item.palletSize.replace(/'/g,"''") : '';
 		let qtyCont = item.qtyCont ? item.qtyCont.replace(/'/g,"''") : '';
+		let slOuter = Math.max(0, Number(item.slOuter) || 0);
 		let price = item.price ? item.price.replace(/'/g,"''") : '';
 		let amount = item.amount ? item.amount.replace(/'/g,"''") : '';
 		let cbm = item.cbm ? item.cbm.replace(/'/g,"''") : '';
@@ -21,6 +22,7 @@ class ThongTinSP {
 			packing,
 			palletSize,
 			qtyCont,
+			slOuter,
 			price,
 			amount,
 			cbm,
@@ -157,29 +159,40 @@ class ThongTinSP {
 			data.map((item) => {
 				let ava = ThongTinSP.beforeInsertUpdate(item);
 				keys.push(item.dateStr + ava.itemNo);
-				sqls.push(`('${item.dateStr}', '${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.colorName}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}')`);
+				sqls.push(`('${item.dateStr}', '${ava.itemNo}', '${ava.description}', '${ava.size}', '${ava.colorName}', '${ava.packing}', '${ava.palletSize}', '${ava.qtyCont}', ${ava.slOuter}, '${ava.price}', '${ava.amount}', '${ava.cbm}', '${ava.image}', '${ava.sizes}', '${ava.colors}')`);
 			});
 			SQL.open((db) => {
 				db.transaction(tx => {
-					tx.executeSql(`select dateStr, itemNo from ThongTinSP where (dateStr + itemNo) in ('${keys.join(',')}')`, [], (tx1, results) => {
-						let len = results.rows.length;
-						if(len > 0) {
-							for(let j = sqls.length - 1; j >= 0; j--) {
-								for (let i = 0; i < len; i++) {
-									let row = results.rows.item(i);
-									if(sqls[j].startsWith(`('${row.dateStr}', '${row.itemNo}'`))
-										sqls.splice(j, 1);
-								}
-							}
+					tx.executeSql(`select dateStr, itemNo from ThongTinSP where (dateStr || itemNo) in ('${keys.join(',')}')`, [], (tx1, results) => {
+						const existing = new Set();
+						for(let i = 0; i < results.rows.length; i++) {
+							const row = results.rows.item(i);
+							existing.add(row.dateStr + row.itemNo);
 						}
-
-						const sqlStr = `INSERT INTO ThongTinSP (dateStr, itemNo, description, size, colorName, packing, palletSize, qtyCont, price, amount, cbm, image, sizes, colors) VALUES ${sqls.join(',')};`;
-						tx.executeSql(sqlStr, [], (tx2, results2) => {
-							callback(results2);
-						},
-						(error) => {
-							console.error('Error:', error);
+						for(let j = sqls.length - 1; j >= 0; j--) {
+							if(existing.has(keys[j])) sqls.splice(j, 1);
+						}
+						// Existing daily cache rows also receive the newly exposed SL Outer value.
+						const updates = data.filter(item =>
+							existing.has(item.dateStr + item.itemNo) && item.slOuter != null);
+						updates.forEach((item, i) => {
+							tx.executeSql(
+								'UPDATE ThongTinSP SET slOuter = ? WHERE dateStr = ? AND itemNo = ?',
+								[Math.max(0, Number(item.slOuter) || 0), item.dateStr, item.itemNo],
+								(tx2, result2) => {
+									if(sqls.length === 0 && i === updates.length - 1) callback(result2);
+								},
+								(error) => { console.error('Error updating SL Outer:', error); }
+							);
 						});
+						if(sqls.length > 0) {
+							const sqlStr = `INSERT INTO ThongTinSP (dateStr, itemNo, description, size, colorName, packing, palletSize, qtyCont, slOuter, price, amount, cbm, image, sizes, colors) VALUES ${sqls.join(',')};`;
+							tx.executeSql(sqlStr, [], (tx2, results2) => callback(results2), (error) => {
+									console.error('Error:', error);
+							});
+						} else if(updates.length === 0) {
+							callback(results);
+						}
 					});
 				});
 			});
