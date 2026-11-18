@@ -55,7 +55,7 @@ jobs:
         run: |
           file="node_modules/react-native-smart-barcode/android/build.gradle"
           test -f "$file"
-          sed -i -E 's/^([[:space:]]*)compile([[:space:]])/\\1implementation\\2/' "$file"
+          sed -i -E 's/^[[:space:]]*compile[[:space:]]+/    implementation /' "$file"
 
       - name: Build standalone Android release APK
         working-directory: android
