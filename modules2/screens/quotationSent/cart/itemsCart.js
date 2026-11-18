@@ -10,7 +10,7 @@ import {
 import styles from '../styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../../Model';
-import { getTotalQuantity, getLineAmount, getLineCbm } from '../../../Model/quantity';
+import { getLineAmount, getLineCbm } from '../../../Model/quantity';
 
 let sizeScreen = Dimensions.get("window");
 const deviceHeight = sizeScreen.height;
@@ -144,10 +144,9 @@ export default class Items extends PureComponent {
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<View style={{flex: 1}}>
-								<Text style={styles.detail_row}>CBM Outer: {rowData.cbm}</Text>
 								<Text style={[styles.detail_row, {color: '#355d2d'}]}>Total CBM: {getLineCbm(rowData) == null ? 'SL Outer required' : Model.toNumberStr(getLineCbm(rowData))}</Text>
 							</View>
-							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total Qty: {getTotalQuantity(rowData) == null ? 'N/A' : Model.toNumberStr(getTotalQuantity(rowData))} · Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
 							
 						</View>
 					</View>
