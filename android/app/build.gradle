@@ -92,9 +92,11 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix ".localtest"
             signingConfig signingConfigs.debug
         }
         release {
+            applicationIdSuffix ".localtest"
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
