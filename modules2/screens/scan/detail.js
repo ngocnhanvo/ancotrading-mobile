@@ -65,6 +65,8 @@ class Detail extends PureComponent {
 		let sets = sizeSets.sets.filter((s)=>{ return s.image != null | s.type == 0 });
 		let colors = res.colors.filter((s)=>{ return s.image != null });
 		let maxHeight = deviceHeight - deviceHeight/4;
+		const isTabletLayout = deviceWidth >= 600;
+		const quantityWidth = isTabletLayout ? 280 : Math.min(280, deviceWidth - 90);
 		return (
 			!this_sav.state.load ? 
 				<View style={{width:'100%', maxHeight }}><Text style={{color:'#000'}}>Loading...</Text></View> :
@@ -83,7 +85,6 @@ class Detail extends PureComponent {
 									<Text style={styles.detail_row}>Pallet Size:</Text>
 									<Text style={styles.detail_row}>Q'ty cont:</Text>
 									<Text style={styles.detail_row}>Price:</Text>
-									<Text style={[styles.detail_row,{paddingTop: 5}]}>Quantity Items:</Text>
 								</View>
 								<View style={{ }}>
 									<TouchableOpacity onPress={() => Clipboard.setString(res.itemNo)}>
@@ -93,36 +94,44 @@ class Detail extends PureComponent {
 									<Text style={styles.detail_row}>{res.palletSize}</Text>
 									<Text style={styles.detail_row}>{res.qtyCont}</Text>
 									<Text style={styles.detail_row}>${res.price}</Text>
+
+								</View>
+							</View>
+						<View style={[styles.quantityPanel, {width: isTabletLayout ? quantityWidth * 2 + 44 : quantityWidth + 28}]}>
+							<View style={{flexDirection: isTabletLayout ? 'row' : 'column'}}>
+								<View style={{width: quantityWidth, marginRight: isTabletLayout ? 16 : 0, marginBottom: isTabletLayout ? 0 : 16}}>
+									<Text style={styles.quantityLabel}>Quantity Items</Text>
 									<NumericInput
-										onChange={value => this_sav.state.qty = value} 
+										onChange={value => this_sav.setState({qty: value})}
 										onLimitReached={(isMax,msg) => alert(msg)}
 										value={this_sav.state.qty}
 										minValue={Model.minVal}
 										maxValue={Model.maxVal}
 										totalHeight={Model.NumericInputH}
-										totalWidth={Model.NumericInputW}
+										totalWidth={quantityWidth}
 										iconStyle={{ color: 'white' }}
-										rightButtonBackgroundColor='#000' 
+										rightButtonBackgroundColor='#000'
+										leftButtonBackgroundColor='#000'
+									/>
+								</View>
+								<View style={{width: quantityWidth}}>
+									<Text style={styles.quantityLabel}>Quantity Pallet/thùng/kiện</Text>
+									<NumericInput
+										onChange={value => this_sav.setState({qtyPallet: value})}
+										onLimitReached={(isMax,msg) => alert(msg)}
+										value={this_sav.state.qtyPallet}
+										minValue={0}
+										maxValue={Model.maxVal}
+										totalHeight={Model.NumericInputH}
+										totalWidth={quantityWidth}
+										iconStyle={{ color: 'white' }}
+										rightButtonBackgroundColor='#000'
 										leftButtonBackgroundColor='#000'
 									/>
 								</View>
 							</View>
-						<View style={{paddingLeft: 20, paddingTop: 12}}>
-							<Text style={styles.detail_row}>Quantity Pallet/thùng/kiện:</Text>
-							<NumericInput
-								onChange={value => this_sav.setState({qtyPallet: value})}
-								onLimitReached={(isMax,msg) => alert(msg)}
-								value={this_sav.state.qtyPallet}
-								minValue={0}
-								maxValue={Model.maxVal}
-								totalHeight={Model.NumericInputH}
-								totalWidth={Model.NumericInputW}
-								iconStyle={{ color: 'white' }}
-								rightButtonBackgroundColor='#000'
-								leftButtonBackgroundColor='#000'
-							/>
 						</View>
-							<View style={{marginTop: 10, paddingLeft: 20, maxHeight: 'auto'}}>
+						<View style={{marginTop: 10, paddingLeft: 20, maxHeight: 'auto'}}>
 								<Text style={[styles.detail_row, {color: 'blue'}]}>Available sizes</Text>
 								<Sizes
 									ref={ref => Model.scanSize = ref}
