@@ -107,7 +107,10 @@ class Detail extends PureComponent {
 									<Text style={styles.quantityLabel}>Quantity Items</Text>
 									<NumericInput
 										onChange={value => this_sav.setState({qty: value})}
-										onLimitReached={(isMax,msg) => alert(msg)}
+										onLimitReached={(isMax, msg) => {
+										if (msg === 'Reached Minimum Value!' || msg === 'Negative quantities are not allowed!')
+											alert('Quantity cannot be negative!');
+									}}
 										value={this_sav.state.qty}
 										minValue={0}
 										maxValue={Model.maxVal}
@@ -122,7 +125,10 @@ class Detail extends PureComponent {
 									<Text style={styles.quantityLabel}>Quantity Pallet/thùng/kiện</Text>
 									<NumericInput
 										onChange={value => this_sav.setState({qtyPallet: value})}
-										onLimitReached={(isMax,msg) => alert(msg)}
+										onLimitReached={(isMax, msg) => {
+										if (msg === 'Reached Minimum Value!' || msg === 'Negative quantities are not allowed!')
+											alert('Quantity cannot be negative!');
+									}}
 										value={this_sav.state.qtyPallet}
 										minValue={0}
 										maxValue={Model.maxVal}

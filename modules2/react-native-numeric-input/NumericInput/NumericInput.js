@@ -57,7 +57,7 @@ export default class NumericInput extends Component {
     }
     dec = () => {
         let value = this.state.props_value && (typeof this.state.props_value === 'number') ? this.state.props_value : this.state.value
-        if (this.props.minValue === null || (value - this.props.step > this.props.minValue)) {
+        if (this.props.minValue === null || (value - this.props.step >= this.props.minValue)) {
             value = (value - this.props.step).toFixed(12)
             value = this.props.valueType === 'real' ? parseFloat(value) : parseInt(value)
         } else if (this.props.minValue !== null) {
@@ -89,6 +89,20 @@ export default class NumericInput extends Component {
         }
         if ((value.charAt(value.length - 1) === '.')) {
             this.setState({ stringValue: value })
+            return
+        }
+        // A zero minimum is valid. Reject actual negative keyboard input before
+        // emitting onChange, so it can never reach cart or quotation state.
+        if (this.props.minValue === 0 && /^-[0-9]/.test(value)) {
+            const restored = Number.isFinite(currValue) && currValue >= 0 ? currValue : 0
+            this.setState({
+                value: restored,
+                props_value: restored,
+                lastValid: restored,
+                stringValue: restored.toString(),
+                legal: true
+            })
+            this.props.onLimitReached(false, 'Negative quantities are not allowed!')
             return
         }
         let legal = this.isLegalValue(value, this.realMatch, this.intMatch)
@@ -135,10 +149,10 @@ export default class NumericInput extends Component {
         let match = this.state.stringValue.match(/-?[0-9]\d*(\.\d+)?/)
         let legal = match && match[0] === match.input && ((this.props.maxValue === null || (parseFloat(this.state.stringValue) <= this.props.maxValue)) && (this.props.minValue === null || (parseFloat(this.state.stringValue) >= this.props.minValue)))
         if (!legal) {
-            if (this.props.minValue !== null && (parseFloat(this.state.stringValue) <= this.props.minValue)) {
+            if (this.props.minValue !== null && (parseFloat(this.state.stringValue) < this.props.minValue)) {
                 this.props.onLimitReached(true, 'Reached Minimum Value!')
             }
-            if (this.props.maxValue !== null && (parseFloat(this.state.stringValue) >= this.props.maxValue)) {
+            if (this.props.maxValue !== null && (parseFloat(this.state.stringValue) > this.props.maxValue)) {
                 this.props.onLimitReached(false, 'Reached Maximum Value!')
             }
             if (this.ref) {
