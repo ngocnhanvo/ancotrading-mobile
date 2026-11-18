@@ -10,7 +10,7 @@ import {
 import styles from './styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../Model';
-import { validateQuantity, getTotalQuantity, getLineAmount, getLineCbm } from '../../Model/quantity';
+import { validateQuantity, getLineAmount, getLineCbm } from '../../Model/quantity';
 import { GioHang, ThongTinSP } from "../../Model/tableSQL";
 import Detail from '../scan/detail.js';
 let sizeScreen = Dimensions.get("window");
@@ -139,13 +139,11 @@ export default class Items extends PureComponent {
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.palletSize}</Text>
 							<View style={{alignItems: 'flex-end'}}>
 								<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: {Model.toNumberStr(Number(rowData.qtyPallet) || 0)}</Text>
-								<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>SL Outer: {Model.toNumberStr(Number(rowData.slOuter) || 0)} · Total Qty: {getTotalQuantity(rowData) == null ? 'N/A' : Model.toNumberStr(getTotalQuantity(rowData))}</Text>
 							</View>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<View style={{flex: 1}}>
-								<Text style={styles.detail_row}>CBM Outer: {rowData.cbm}</Text>
 								<Text style={[styles.detail_row, {color: '#355d2d'}]}>Total CBM: {getLineCbm(rowData) == null ? 'SL Outer required' : Model.toNumberStr(getLineCbm(rowData))}</Text>
 							</View>
 							<View style={{alignItems: 'flex-end'}}>
