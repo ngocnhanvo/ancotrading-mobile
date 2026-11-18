@@ -45,7 +45,22 @@ export const getLineAmount = item => {
   return total === null ? null : Math.round(total * toPriceNumber(item.price) * 100) / 100;
 };
 
-export const getLineCbm = item => {
-  const total = getTotalQuantity(item);
-  return total === null ? null : Math.round(total * toPriceNumber(item.cbm) * 1000) / 1000;
+// API cbm is the volume of one OUTER pack, not one loose item.
+// Loose items contribute qty/slOuter packs; entered outer packs contribute directly.
+const toCbmNumber = value => {
+  // Old SQLite rows may contain decimal-comma values, e.g. "0,071".
+  // API now emits decimal dots, but both formats must calculate identically.
+  const cbm = Number(String(value == null ? 0 : value).trim().replace(',', '.'));
+  return Number.isFinite(cbm) ? cbm : 0;
+};
+
+export const getLineCbm = (item = {}) => {
+  const qty = Number(item.qty == null ? 0 : item.qty);
+  const packs = Number(item.qtyPallet == null ? 0 : item.qtyPallet);
+  const outer = Number(item.slOuter == null ? 0 : item.slOuter);
+  if (getTotalQuantity(item) === null) return null;
+  if (qty === 0 && packs === 0) return 0;
+  if (!Number.isFinite(outer) || outer <= 0) return null;
+  const cbm = (qty / outer + packs) * toCbmNumber(item.cbm);
+  return Math.round((cbm + Number.EPSILON) * 1000000) / 1000000;
 };

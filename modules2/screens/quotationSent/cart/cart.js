@@ -98,7 +98,7 @@ export default class QuotationCart extends PureComponent {
 
 				if(Model.footerQuoSentLWCrt) {
 					Model.footerQuoSentLWCrt.sumFooter(this_sav.state.BaoGiaID, (res1)=>{
-						Model.footerQuoSentLWCrt.setState({ dtsl: res.total, sum_qty: res1.qty, sum_qtyPallet: res1.qtyPallet, sum_totalQty: res1.totalQty, invalidOuter: res1.invalidOuter, sum_cbm: res1.cbm, sum_amount: res1.amount });
+						Model.footerQuoSentLWCrt.setState({ dtsl: res.total, sum_qty: res1.qty, sum_qtyPallet: res1.qtyPallet, sum_totalQty: res1.totalQty, invalidOuter: res1.invalidOuter, invalidCbm: res1.invalidCbm, sum_cbm: res1.cbm, sum_amount: res1.amount });
 					});
 				}
 			}

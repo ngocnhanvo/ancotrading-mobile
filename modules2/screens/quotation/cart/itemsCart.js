@@ -10,7 +10,7 @@ import {
 import styles from '../styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../../Model';
-import { validateQuantity, getTotalQuantity, getLineAmount } from '../../../Model/quantity';
+import { validateQuantity, getTotalQuantity, getLineAmount, getLineCbm } from '../../../Model/quantity';
 import { ThongTinSP } from "../../../Model/tableSQL/ThongTinSP.js";
 import Detail from '../../scan/detail.js';
 let sizeScreen = Dimensions.get("window");
@@ -89,6 +89,7 @@ export default class Items extends PureComponent {
 										Model.footerQuoLWCrt.state.sum_qtyPallet = tt.qtyPallet;
 										Model.footerQuoLWCrt.state.sum_totalQty = tt.totalQty;
 										Model.footerQuoLWCrt.state.invalidOuter = tt.invalidOuter;
+										Model.footerQuoLWCrt.state.invalidCbm = tt.invalidCbm;
 										Model.footerQuoLWCrt.state.sum_cbm = tt.cbm;
 										Model.footerQuoLWCrt.state.sum_amount = tt.amount;
 										Model.footerQuoLWCrt.forceUpdate();
@@ -143,7 +144,10 @@ export default class Items extends PureComponent {
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
-							<Text style={[styles.detail_row, {flex: 1}]}>CBM: {rowData.cbm}</Text>
+							<View style={{flex: 1}}>
+								<Text style={styles.detail_row}>CBM Outer: {rowData.cbm}</Text>
+								<Text style={[styles.detail_row, {color: '#355d2d'}]}>Total CBM: {getLineCbm(rowData) == null ? 'SL Outer required' : Model.toNumberStr(getLineCbm(rowData))}</Text>
+							</View>
 							<View style={{alignItems: 'flex-end'}}>
 								<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
 								<TouchableOpacity 

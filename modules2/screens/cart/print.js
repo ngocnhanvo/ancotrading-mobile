@@ -9,7 +9,7 @@ import {
 	PermissionsAndroid,
 } from 'react-native';
 import { Model } from '../../Model';
-import { getTotalQuantity, getLineAmount } from '../../Model/quantity';
+import { getTotalQuantity, getLineAmount, getLineCbm } from '../../Model/quantity';
 import { GioHang } from "../../Model/tableSQL";
 import WebView from 'react-native-webview';
 import RNPrint from 'react-native-print';
@@ -214,10 +214,12 @@ export default class PrintMain extends PureComponent {
 		let this_sav = this;
 		let display = this_sav.state.partner.qotype == 0 ? 'none' : '';
 		GioHang.getGioHangs(null, (datas)=> {
-			let sum_qty = 0, sum_amount = 0, invalidOuter = false;
+			let sum_qty = 0, sum_amount = 0, sum_cbm = 0, invalidOuter = false, invalidCbm = false;
 			datas.forEach((item, index) => {
 				const totalQty = getTotalQuantity(item);
 				const lineAmount = getLineAmount(item);
+				const lineCbm = getLineCbm(item);
+				if(lineCbm == null) invalidCbm = true;
 				if(totalQty == null) invalidOuter = true;
 				let Size = item.size;
 				if(!Model.is0orS(item.itemNo, true)) {
@@ -240,6 +242,7 @@ export default class PrintMain extends PureComponent {
 						<td class="price">${totalQty == null ? 'SL Outer required' : Model.toNumberStr(totalQty)}
 							<div style="font-size:9px">${Number(item.qty) || 0} Items + ${Number(item.qtyPallet) || 0} × ${Number(item.slOuter) || 0} Outer</div>
 						</td>
+						<td class="price">${lineCbm == null ? 'SL Outer required' : Model.toNumberStr(lineCbm)}</td>
 						<td class="price" style="display:${display}">${Model.toNumberStr(item.price)}</td>
 						<td class="price" style="display:${display}">${lineAmount == null ? '—' : Model.toNumberStr(lineAmount)}</td>
 					</tr>
@@ -247,9 +250,10 @@ export default class PrintMain extends PureComponent {
 
 				sum_qty += totalQty == null ? 0 : totalQty;
 				sum_amount += lineAmount == null ? 0 : lineAmount;
+				sum_cbm += lineCbm == null ? 0 : lineCbm;
 			});
 
-			if(display == '') {
+			if(datas.length > 0) {
 				html += `
 					<tr style="height:30px">
 						<td colspan=2 class="itemNo" style="text-align:right; font-weight:bold;">Sub Total:</td>
@@ -257,8 +261,9 @@ export default class PrintMain extends PureComponent {
 						<td></td>
 						<td></td>
 						<td class="price" style="font-weight:bold">${invalidOuter ? 'SL Outer required' : Model.toNumberStr(sum_qty)}</td>
-						<td class="price"></td>
-						<td class="price" style="font-weight:bold">${invalidOuter ? 'SL Outer required' : Model.toNumberStr(sum_amount)}</td>
+						<td class="price" style="font-weight:bold">${invalidCbm ? 'SL Outer required' : Model.toNumberStr(Math.round((sum_cbm + Number.EPSILON) * 1000000) / 1000000)}</td>
+						<td class="price" style="display:${display}"></td>
+						<td class="price" style="display:${display};font-weight:bold">${invalidOuter ? 'SL Outer required' : Model.toNumberStr(sum_amount)}</td>
 					</tr>
 				`;
 			}
@@ -301,6 +306,7 @@ export default class PrintMain extends PureComponent {
 						<th>Packing /Master</th>
 						<th>Qty/40HC</th>
 						<th>Total Qty/Req</th>
+						<th>Total CBM (m³)</th>
 						<th style="display:${display}">FOB PRICE (USD)</th>
 						<th style="display:${display}">Amount (USD)</th>
 					</tr>

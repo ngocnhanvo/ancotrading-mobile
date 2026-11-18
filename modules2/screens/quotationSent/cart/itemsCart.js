@@ -10,7 +10,7 @@ import {
 import styles from '../styles.js';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Model } from '../../../Model';
-import { getTotalQuantity, getLineAmount } from '../../../Model/quantity';
+import { getTotalQuantity, getLineAmount, getLineCbm } from '../../../Model/quantity';
 
 let sizeScreen = Dimensions.get("window");
 const deviceHeight = sizeScreen.height;
@@ -85,12 +85,16 @@ export default class Items extends PureComponent {
 									}
 								}
 
-								if(Model.footerQuoLWCrt) {
-									Model.footerQuoLWCrt.sumFooter(datas[0].BaoGiaID, (tt) => {
-										Model.footerQuoLWCrt.state.sum_qty = tt.qty;
-										Model.footerQuoLWCrt.state.sum_cbm = tt.cbm;
-										Model.footerQuoLWCrt.state.sum_amount = tt.amount;
-										Model.footerQuoLWCrt.forceUpdate();
+								if(Model.footerQuoSentLWCrt) {
+									Model.footerQuoSentLWCrt.sumFooter(datas[0].BaoGiaID, (tt) => {
+										Model.footerQuoSentLWCrt.state.sum_qty = tt.qty;
+										Model.footerQuoSentLWCrt.state.sum_qtyPallet = tt.qtyPallet;
+										Model.footerQuoSentLWCrt.state.sum_totalQty = tt.totalQty;
+										Model.footerQuoSentLWCrt.state.invalidOuter = tt.invalidOuter;
+										Model.footerQuoSentLWCrt.state.invalidCbm = tt.invalidCbm;
+										Model.footerQuoSentLWCrt.state.sum_cbm = tt.cbm;
+										Model.footerQuoSentLWCrt.state.sum_amount = tt.amount;
+										Model.footerQuoSentLWCrt.forceUpdate();
 									});
 								}
 								Model.objectM.spinnerMain.close();	
@@ -139,7 +143,10 @@ export default class Items extends PureComponent {
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
-							<Text style={[styles.detail_row, {flex: 1}]}>CBM: {rowData.cbm}</Text>
+							<View style={{flex: 1}}>
+								<Text style={styles.detail_row}>CBM Outer: {rowData.cbm}</Text>
+								<Text style={[styles.detail_row, {color: '#355d2d'}]}>Total CBM: {getLineCbm(rowData) == null ? 'SL Outer required' : Model.toNumberStr(getLineCbm(rowData))}</Text>
+							</View>
 							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total Qty: {getTotalQuantity(rowData) == null ? 'N/A' : Model.toNumberStr(getTotalQuantity(rowData))} · Total: {getLineAmount(rowData) == null ? 'SL Outer required' : '$' + Model.toNumberStr(getLineAmount(rowData))}</Text>
 							
 						</View>

@@ -16,7 +16,7 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import NumericInput from '../../react-native-numeric-input';
 import { Model } from "../../Model";
-import { getTotalQuantity, getLineAmount } from '../../Model/quantity';
+import { getTotalQuantity, getLineAmount, getLineCbm } from '../../Model/quantity';
 import { Dimensions } from 'react-native';
 import styles from './styles.js';
 import { ScrollView } from 'react-native';
@@ -68,9 +68,10 @@ class Detail extends PureComponent {
 		let maxHeight = deviceHeight - deviceHeight/4;
 		const isTabletLayout = deviceWidth >= 600;
 		const quantityWidth = isTabletLayout ? 280 : Math.min(280, deviceWidth - 90);
-		const quantityRow = {qty: this_sav.state.qty, qtyPallet: this_sav.state.qtyPallet, slOuter: res.slOuter, price: res.price};
+		const quantityRow = {qty: this_sav.state.qty, qtyPallet: this_sav.state.qtyPallet, slOuter: res.slOuter, price: res.price, cbm: res.cbm};
 		const totalQty = getTotalQuantity(quantityRow);
 		const lineAmount = getLineAmount(quantityRow);
+		const totalCbm = getLineCbm(quantityRow);
 		return (
 			!this_sav.state.load ? 
 				<View style={{width:'100%', maxHeight }}><Text style={{color:'#000'}}>Loading...</Text></View> :
@@ -143,6 +144,8 @@ class Detail extends PureComponent {
 							<View style={{marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#dce4dc'}}>
 								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>SL Outer: {Number(res.slOuter) > 0 ? Model.toNumberStr(Number(res.slOuter)) : 'Not available'}</Text>
 								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>Total Qty: {totalQty == null ? 'SL Outer required' : Model.toNumberStr(totalQty)}</Text>
+								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>CBM Outer: {res.cbm || '0'}</Text>
+								<Text style={[styles.quantityLabel, {marginBottom: 4}]}>Total CBM: {totalCbm == null ? 'SL Outer required' : Model.toNumberStr(totalCbm)} m³</Text>
 								<Text style={[styles.quantityLabel, {marginBottom: 0}]}>Total Amount: {lineAmount == null ? '—' : '$' + Model.toNumberStr(lineAmount)}</Text>
 							</View>
 						</View>

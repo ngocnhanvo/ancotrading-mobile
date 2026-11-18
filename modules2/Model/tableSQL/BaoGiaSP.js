@@ -40,7 +40,19 @@ class BaoGiaSP {
 	}
 	static sumBaoGiaSPs = (data, callback) => {
 		let where = SQL.getWhere(data);
-		const sqlStr = `SELECT COALESCE(SUM(qty), 0) AS qty, COALESCE(SUM(qtyPallet), 0) AS qtyPallet, COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) AS invalidOuter, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0))), 0) END AS totalQty, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE ROUND(COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0)) * CAST(COALESCE(cbm, '0') AS REAL)), 0), 3) END AS cbm, CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL ELSE ROUND(COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0)) * CAST(REPLACE(COALESCE(price, '0'), ',', '') AS REAL)), 0), 2) END AS amount FROM BaoGiaSP ${where}`;
+		const sqlStr = `
+            SELECT
+              COALESCE(SUM(qty), 0) AS qty,
+              COALESCE(SUM(qtyPallet), 0) AS qtyPallet,
+              COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) AS invalidOuter,
+              COALESCE(SUM(CASE WHEN (COALESCE(qty, 0) > 0 OR COALESCE(qtyPallet, 0) > 0) AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) AS invalidCbm,
+              CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL
+                   ELSE COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0))), 0) END AS totalQty,
+              CASE WHEN COALESCE(SUM(CASE WHEN (COALESCE(qty, 0) > 0 OR COALESCE(qtyPallet, 0) > 0) AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL
+                   ELSE ROUND(COALESCE(SUM((CAST(COALESCE(qty, 0) AS REAL) / NULLIF(CAST(slOuter AS REAL), 0) + CAST(COALESCE(qtyPallet, 0) AS REAL)) * CAST(REPLACE(COALESCE(cbm, '0'), ',', '.') AS REAL)), 0), 6) END AS cbm,
+              CASE WHEN COALESCE(SUM(CASE WHEN COALESCE(qtyPallet, 0) > 0 AND COALESCE(slOuter, 0) <= 0 THEN 1 ELSE 0 END), 0) > 0 THEN NULL
+                   ELSE ROUND(COALESCE(SUM((COALESCE(qty, 0) + COALESCE(qtyPallet, 0) * COALESCE(slOuter, 0)) * CAST(REPLACE(COALESCE(price, '0'), ',', '') AS REAL)), 0), 2) END AS amount
+            FROM BaoGiaSP ${where}`;
 		try {
 			SQL.open((db) => {
 				db.transaction(tx => {
