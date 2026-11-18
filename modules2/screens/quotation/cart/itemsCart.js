@@ -120,7 +120,7 @@ export default class Items extends PureComponent {
 				}}
 			>
 				<View style={{ paddingVertical: 10 }}>
-					<View style={{ flexDirection: 'column', minHeight: 125, padding: 5 }}>
+					<View style={{ flexDirection: 'column', minHeight: 140, padding: 5 }}>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}>{index}</Text>
 							<View style={{width: 200}}>
@@ -138,13 +138,15 @@ export default class Items extends PureComponent {
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.palletSize}</Text>
-							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {Model.toNumberStr(rowData.qty * Model.toNumber(rowData.price))}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right', color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: {Model.toNumberStr(Number(rowData.qtyPallet) || 0)}</Text>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>CBM: {rowData.cbm}</Text>
-							<TouchableOpacity 
-								style={{textAlign: 'right', width: 25}} 
+							<View style={{alignItems: 'flex-end'}}>
+								<Text style={[styles.detail_row, {textAlign: 'right'}]}>Total: {Model.toNumberStr(rowData.qty * Model.toNumber(rowData.price))}</Text>
+								<TouchableOpacity 
+								style={{alignSelf: 'flex-end'}} 
 								onPress={() => {
 									rowData.dateStr = Model.this_sav.state.dateStr;
 									Model.objectM.dialogboxMain3.disableOverlayClickClose(true);
@@ -184,13 +186,8 @@ export default class Items extends PureComponent {
 								<Text style={[styles.detail_row,{textAlign:'right', color: 'blue'}, styles.underLine]}>
 									Edit
 								</Text>
-							</TouchableOpacity>
-						</View>
-						<View style={{flexDirection: 'row', paddingLeft: 25, paddingTop: 4, flexWrap: 'wrap'}}>
-							<Text style={[styles.detail_row, {color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: </Text>
-							<Text style={[styles.detail_row, {fontWeight: 'bold'}]}>
-								{Model.toNumberStr(Number(rowData.qtyPallet) || 0)}
-							</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 					</View>
 				</View>

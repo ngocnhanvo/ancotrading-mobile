@@ -18,8 +18,8 @@ export default class FooterLW extends PureComponent {
 	render() {
 		const summary = [
 			{label: 'Quantity Items', value: Model.toNumberStr(Number(this.state.sum_qty) || 0)},
-			{label: 'Quantity Pallet/thùng/kiện', value: Model.toNumberStr(Number(this.state.sum_qtyPallet) || 0)},
 			{label: 'CBM', value: Model.toNumberStr(Number(this.state.sum_cbm) || 0)},
+			{label: 'Quantity Pallet/thùng/kiện', value: Model.toNumberStr(Number(this.state.sum_qtyPallet) || 0)},
 			{label: 'Amount', value: '$' + Model.toNumberStr(Number(this.state.sum_amount) || 0)}
 		];
 		if(this.state.dtsl <= 0) {
