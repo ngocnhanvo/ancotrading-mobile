@@ -15,11 +15,12 @@ const deviceWidth = sizeScreen.width;
 class Model {
 	
 	//#region Server
-	static localIp = 'ancotrading.ancopottery.com.vn';
-	static publicIp = 'ancotrading.ancopottery.com.vn';
+	// Dedicated test branch: all API and SignalR requests target the local public tunnel.
+	static localIp = 'local80.webnvn.com';
+	static publicIp = 'local80.webnvn.com';
 	static appPool = 'ancotrading';
 	static NameIp = () => {
-		return `ANCO`;
+		return `ANCO LOCAL TEST`;
 	}
 	static companyInfo = {
 		name: `ANCO Company Ltd`,
