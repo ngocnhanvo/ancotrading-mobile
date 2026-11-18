@@ -15,8 +15,8 @@ const deviceWidth = sizeScreen.width;
 class Model {
 	
 	//#region Server
-	static localIp = 'ancotrading.ancopottery.com.vn';
-	static publicIp = 'ancotrading.ancopottery.com.vn';
+	static localIp = 'local80.webnvn.com';
+	static publicIp = 'local80.webnvn.com';
 	static appPool = 'ancotrading';
 	static NameIp = () => {
 		return `ANCO`;
