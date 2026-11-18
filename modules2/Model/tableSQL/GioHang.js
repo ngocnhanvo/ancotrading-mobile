@@ -36,7 +36,7 @@ class GioHang {
 	}
 	static sumGioHangs = (data, callback) => {
 		let where = SQL.getWhere(data);
-		const sqlStr = `SELECT sum(qty) as qty, round(sum(qty*cbm), 3) as cbm, round(sum(qty*price), 2) as amount FROM GioHang ${where}`;
+		const sqlStr = `SELECT sum(qty) as qty, COALESCE(sum(qtyPallet), 0) as qtyPallet, round(sum(qty*cbm), 3) as cbm, round(sum(qty*price), 2) as amount FROM GioHang ${where}`;
 		try {
 			SQL.open((db) => {
 				db.transaction(tx => {

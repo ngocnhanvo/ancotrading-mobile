@@ -90,6 +90,7 @@ export default class Items extends PureComponent {
 									GioHang.sumGioHangs(null, (res)=> {
 										if(Model.this_sav.state.footerCrtLW) {
 											Model.this_sav.state.footerCrtLW.state.sum_qty = res.qty;
+											Model.this_sav.state.footerCrtLW.state.sum_qtyPallet = res.qtyPallet;
 											Model.this_sav.state.footerCrtLW.state.sum_cbm = res.cbm;
 											Model.this_sav.state.footerCrtLW.state.sum_amount = res.amount;
 											Model.this_sav.state.footerCrtLW.forceUpdate();
@@ -119,7 +120,7 @@ export default class Items extends PureComponent {
 				}}
 			>
 				<View style={{ paddingVertical: 10 }}>
-					<View style={{ flexDirection: 'column', height: 100, padding: 5 }}>
+					<View style={{ flexDirection: 'column', minHeight: 125, padding: 5 }}>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}>{index}</Text>
 							<View style={{width: 200}}>
@@ -132,7 +133,7 @@ export default class Items extends PureComponent {
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
 							<Text style={[styles.detail_row, {flex: 1}]}>{rowData.packing}, {rowData.qtyCont}</Text>
-							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Quantity: {Model.toNumberStr(rowData.qty)}</Text>
+							<Text style={[styles.detail_row, {textAlign: 'right'}]}>Quantity Items: {Model.toNumberStr(rowData.qty)}</Text>
 						</View>
 						<View style={{ flexDirection: 'row' }}>
 							<Text style={[styles.detail_row, {width: 25}]}></Text>
@@ -183,6 +184,12 @@ export default class Items extends PureComponent {
 									Edit
 								</Text>
 							</TouchableOpacity>
+						</View>
+						<View style={{flexDirection: 'row', paddingLeft: 25, paddingTop: 4, flexWrap: 'wrap'}}>
+							<Text style={[styles.detail_row, {color: '#355d2d'}]}>Quantity Pallet/thùng/kiện: </Text>
+							<Text style={[styles.detail_row, {fontWeight: 'bold'}]}>
+								{Model.toNumberStr(Number(rowData.qtyPallet) || 0)}
+							</Text>
 						</View>
 					</View>
 				</View>

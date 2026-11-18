@@ -1,59 +1,59 @@
 import React, {
 	PureComponent
 } from 'react'
-import {
-	View,
-	Text,
-	Dimensions,
-} from 'react-native'
+import { View, Text } from 'react-native'
 import { Model } from '../../Model';
 import { GioHang } from "../../Model/tableSQL";
-let sizeScreen = Dimensions.get("window");
-const deviceHeight = sizeScreen.height;
-const deviceWidth = sizeScreen.width;
 
 export default class FooterLW extends PureComponent {
 	constructor(props) {
 		super(props);
-		this.state = {
-			dtsl: 0
-		};
+		this.state = { dtsl: 0, sum_qty: 0, sum_qtyPallet: 0, sum_cbm: 0, sum_amount: 0 };
 	}
 	sumFooter = (callback) => {
-		GioHang.sumGioHangs(null, (res)=> {
-			if(callback)
-				callback(res);
+		GioHang.sumGioHangs(null, (res) => {
+			if(callback) callback(res);
 		});
 	}
 	render() {
-		let this_sav = this;
-		let dtsl = this_sav.state.dtsl;
+		const summary = [
+			{label: 'Quantity Items', value: Model.toNumberStr(Number(this.state.sum_qty) || 0)},
+			{label: 'Quantity Pallet/thùng/kiện', value: Model.toNumberStr(Number(this.state.sum_qtyPallet) || 0)},
+			{label: 'CBM', value: Model.toNumberStr(Number(this.state.sum_cbm) || 0)},
+			{label: 'Amount', value: '$' + Model.toNumberStr(Number(this.state.sum_amount) || 0)}
+		];
+		if(this.state.dtsl <= 0) {
+			return (
+				<View style={{marginVertical: 5, padding: 10, backgroundColor: '#FFFFFF', alignItems: 'center'}}>
+					<Text style={{color: '#7f7d7d', fontSize: 16}}>Have no records</Text>
+				</View>
+			);
+		}
 		return (
-			dtsl <= 0 ? (
-				<View style={{ marginVertical: 5, padding: 10, backgroundColor: '#FFFFFF', alignItems: 'center' }}>
-					<Text style={{ color: '#7f7d7d', fontSize: 16 }}>Have no records</Text>
-				</View>
-			) : (
-				<View style={{ flex: 1, flexDirection: 'column', padding: 10, backgroundColor: '#CCC' }}>
-					<View style={{ flex: 1, flexDirection: 'row', paddingBottom: 5 }}>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontWeight: 'bold', fontSize: 14, color: 'black' }}>Quantity</Text>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontWeight: 'bold', fontSize: 14, color: 'black' }}>CBM</Text>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontWeight: 'bold', fontSize: 14, color: 'black' }}>Amount</Text>
+			<View style={{padding: 8, backgroundColor: '#f1f3f0'}}>
+				{[0, 1].map(row => (
+					<View key={row} style={{flexDirection: 'row'}}>
+						{summary.slice(row * 2, row * 2 + 2).map(item => (
+							<View key={item.label} style={{
+								flex: 1,
+								alignItems: 'center',
+								justifyContent: 'center',
+								paddingVertical: 8,
+								paddingHorizontal: 5,
+								borderBottomWidth: row === 0 ? 1 : 0,
+								borderBottomColor: '#d7ddd3'
+							}}>
+								<Text style={{color: '#242b24', textAlign: 'center', fontWeight: 'bold', fontSize: 13}}>
+									{item.label}
+								</Text>
+								<Text style={{color: '#1646b5', textAlign: 'center', fontSize: 15, marginTop: 4}}>
+									{item.value}
+								</Text>
+							</View>
+						))}
 					</View>
-					<View style={{ flex: 1, flexDirection: 'row' }}>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontSize: 14, color: 'blue' }}>
-							{Model.toNumberStr(this_sav.state.sum_qty)}
-						</Text>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontSize: 14, color: 'blue' }}>
-							{Model.toNumberStr(this_sav.state.sum_cbm)}
-						</Text>
-						<Text style={{ flex: 0.333333, textAlign: 'center', fontSize: 14, color: 'blue' }}>
-							${Model.toNumberStr(this_sav.state.sum_amount)}
-						</Text>
-					</View>
-				</View>
-			)
-		)
+				))}
+			</View>
+		);
 	}
 }
-
