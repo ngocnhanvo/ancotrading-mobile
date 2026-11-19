@@ -6,7 +6,8 @@ import {
 	Text,
 	BackHandler,
 	TouchableOpacity,
-	ActivityIndicator
+	ActivityIndicator,
+	Alert
 } from 'react-native'
 import {
 	Container,
@@ -21,6 +22,7 @@ import stylevnn from '../../styles/public.js';
 import styles from './styles.js';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
+import Clipboard from '@react-native-clipboard/clipboard';
 import PaginationSPD from '../../react-native-basic-pagination/pagination.js';
 import Items from './items.js';
 import HeaderSPD from './header.js';
@@ -95,6 +97,43 @@ const setActiveScan = (ac) => {
 	Model.this_sav.setState({activeScan: ac});
 	Model.footerGDT.setState({activeScan: ac});
 };
+// Diagnostic metadata only: never include customer/product response bodies or credentials.
+const makeGetDataDiagnostic = (error, meta, stage) => {
+  const response = error && error.response;
+  const request = error && error.request;
+  const xhrStatus = request && typeof request.status === 'number' ? request.status : null;
+  const httpStatus = response && response.status != null ? response.status : xhrStatus;
+  const rawNativeError = !response && xhrStatus === 0 && request && typeof request._response === 'string' ? request._response : '';
+  const nativeError = /^(Network request failed|Failed to|Unable to|java\.|javax\.)/i.test(rawNativeError) ? rawNativeError.substring(0, 350) : '';
+  const lines = [
+    'Time: ' + new Date().toISOString(),
+    'Stage: ' + stage,
+    'Method: GET',
+    'URL: ' + meta.url,
+    'Active root: ' + Model.linkRoot,
+    'Configured IP: ' + Model.localIp,
+    'Batch: skip=' + meta.skip + ', take=' + meta.take + ', dateStr=' + (meta.dateStr || '(latest)'),
+    'Elapsed: ' + (Date.now() - meta.startedAt) + 'ms',
+    'Axios code: ' + ((error && error.code) || '(none)'),
+    'Error name: ' + ((error && error.name) || '(none)'),
+    'Message: ' + ((error && error.message) || String(error)),
+    'HTTP/XHR status: ' + (httpStatus == null ? '(unavailable)' : httpStatus),
+    'XHR readyState: ' + (request && request.readyState != null ? request.readyState : '(unavailable)'),
+    'XHR responseURL: ' + (request && request.responseURL ? request.responseURL : '(unavailable)')
+  ];
+  if (error && error.cause && error.cause.message) lines.push('Cause: ' + error.cause.message);
+  if (nativeError) lines.push('Native transport: ' + nativeError);
+  return lines.join('\n');
+};
+
+const reportGetDataError = (error, meta, stage) => {
+  const details = makeGetDataDiagnostic(error, meta, stage);
+  console.error('[ANCO][GetData] Request failed\n' + details);
+  Alert.alert('Get Data failed', details, [
+    {text: 'Copy diagnostics', onPress: () => Clipboard.setString(details)},
+    {text: 'Close', style: 'cancel'}
+  ]);
+};
 let ajaxRequest = null;
 const getDataFromServer = (skip, take, dateStr, this_sav) => {
 	ajaxRequest = axios.CancelToken.source();
@@ -112,12 +151,22 @@ const getDataFromServer = (skip, take, dateStr, this_sav) => {
 			}
 
 			let link = `${Model.linkRoot}/Controllers/API_Data.ashx?oper=sanphams&take=${take}&skip=${skip}&dateStr=${dateStr}`;
+			const requestMeta = {url: link, skip, take, dateStr, startedAt: Date.now()};
+			let requestStage = 'http-request';
+			console.info('[ANCO][GetData] Request started', {url: link, skip, take, dateStr: dateStr || '(latest)'});
 			axios.get(link, {
-				cancelToken: ajaxRequest.token 
+				cancelToken: ajaxRequest.token
 			}).then(function(response) {
+				requestStage = 'response-processing';
+				console.info('[ANCO][GetData] HTTP response received', {
+					url: link, status: response.status, elapsedMs: Date.now() - requestMeta.startedAt,
+					bodyLength: typeof response.data === 'string' ? response.data.length : '(non-string)'
+				});
+				if (typeof response.data !== 'string') throw new Error('Invalid API response type: expected text.');
 				let data = response.data.substring(1);
 				if(response.data.startsWith('1')) {
 					let resDT = JSON.parse(data);
+					requestStage = 'local-data-update';
 					//resDT.tongSLSP = 100;
 
 					let res = resArr.filter((a)=>{
@@ -182,28 +231,25 @@ const getDataFromServer = (skip, take, dateStr, this_sav) => {
 				}
 				else
 				{
+					console.warn('[ANCO][GetData] API returned a business error', {url: link, status: response.status, elapsedMs: Date.now() - requestMeta.startedAt});
 					Model.objectM.dialogboxMain.alert(data);
 					Model.objectM.drawer.updateDisabled(false);
 					setActiveScan(0);
 				}
 			})
 			.catch(function (error) {
-				if(error.code === 'ERR_NETWORK'){
-					Model.objectM.dialogboxMain.alert('No internet connection');
-					Model.objectM.drawer.updateDisabled(false);
-					setActiveScan(0);
+				if (axios.isCancel(error)) {
+					console.info('[ANCO][GetData] Request cancelled by user', {url: link, elapsedMs: Date.now() - requestMeta.startedAt});
+					return;
 				}
-				else if (error.response) {
-					if(error.response.status != 400) {
-						Model.objectM.dialogboxMain.alert(error.response.status, error.response.data);
-						Model.objectM.drawer.updateDisabled(false);
-						setActiveScan(0);
-					}
-				}
+				reportGetDataError(error, requestMeta, requestStage);
+				Model.objectM.drawer.updateDisabled(false);
+				setActiveScan(0);
 			});
 		});
 	}
 	catch(r) {
+		console.error('[ANCO][GetData] Setup failed', {message: r && r.message ? r.message : String(r), stage: 'request-setup', activeRoot: Model.linkRoot});
 		Model.objectM.drawer.updateDisabled(false);
 		setActiveScan(0);
 		Model.objectM.dialogboxMain.alert(r);
